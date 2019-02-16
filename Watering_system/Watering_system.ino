@@ -2,9 +2,13 @@
 #include "DS3231.h"
 #include <LiquidCrystal_I2C.h>
 
+// Real Time Clock DS3231
 RTClib RTC;
+
+// LCD with I2C module
 LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);
 
+// Variables for 18650 voltage calculations
 float A0_input_volt = 0.0;
 float A1_input_volt = 0.0;
 float A2_input_volt = 0.0;
@@ -31,7 +35,10 @@ void setup() {
   Serial.begin(9600);
   lcd.begin(16,2);
   lcd.backlight();
-  lcd.autoscroll();
+  //lcd.autoscroll();
+
+  // LED pin for voltage differences alarm
+  pinMode(4,OUTPUT);
 
 }
 
@@ -42,9 +49,9 @@ void loop() {
   //int rok       = teraz.year();
   //int miesiac   = teraz.month();
   //int dzien     = teraz.day();
-  int godzina   = teraz.hour();
-  int minuta    = teraz.minute();
-  int sekunda   = teraz.second();
+  int godzina     = teraz.hour();
+  int minuta      = teraz.minute();
+  int sekunda     = teraz.second();
   float A0A1_dif  = 0.0;
   float A1A2_dif  = 0.0;
   float A2A0_dif  = 0.0;
@@ -93,14 +100,22 @@ void loop() {
   A2A0_dif = abs(A2_input_volt - A0_input_volt);
 
   if (A0A1_dif > 0.1 || A1A2_dif > 0.1 || A2A0_dif > 0.1) {
+    
+    digitalWrite(4, HIGH);
+    
     lcd.clear();
     lcd.setCursor(0,0);
     lcd.print("Invalid voltage");
+    
     lcd.setCursor(0,1);
     lcd.print(" A0= ");
     lcd.print(A0_input_volt);
+
+    lcd.setCursor(0,1);
     lcd.print(" A1= ");
     lcd.print(A1_input_volt);
+
+    lcd.setCursor(0,1);
     lcd.print(" A2= ");
     lcd.print(A2_input_volt);
   }
