@@ -22,13 +22,15 @@ float A1_r2=1000.0;
 float A2_r1=2000.0;
 float A2_r2=1000.0;
 
-float A0_correction=106.0;
-float A1_correction=106.0;
-float A2_correction=105.5;
+float A0_correction=105.9;
+float A1_correction=105.8;
+float A2_correction=106.0;
 
 int A0_value=0;
 int A1_value=0;
 int A2_value=0;
+
+int V_ok=1;
 
 void setup() {
 
@@ -39,6 +41,10 @@ void setup() {
 
   // LED pin for voltage differences alarm
   pinMode(4,OUTPUT);
+  
+  // Water pump relay pin
+  pinMode(2,OUTPUT);
+  digitalWrite(2, HIGH);
 
 }
 
@@ -58,7 +64,7 @@ void loop() {
 
 // Sprawdzanie napięcia na ogniwach
 
-// A0 calculations
+  // A0 calculations
   A0_value = analogRead(A0);
   A0_input_volt = (A0_value * 5.0)/1024.0; //only for Vin 0V-5V
   A0_input_volt = (A0_input_volt/A0_correction)*100;
@@ -68,7 +74,7 @@ void loop() {
      A0_input_volt=0.0;
    }
 
-// A1 calculations
+  // A1 calculations
   A1_value = analogRead(A1);
   A1_input_volt = (A1_value * 5.0)/1024.0; //only for Vin 0V-5V
   A1_input_volt = (A1_input_volt/A1_correction)*100;
@@ -78,7 +84,7 @@ void loop() {
      A1_input_volt=0.0;
    }
 
-// A2 calculations
+  // A2 calculations
   A2_value = analogRead(A2);
   A2_input_volt = (A2_value * 5.0)/1024.0; //only for Vin 0V-5V
   A2_input_volt = (A2_input_volt/A2_correction)*100;
@@ -102,26 +108,61 @@ void loop() {
   if (A0A1_dif > 0.1 || A1A2_dif > 0.1 || A2A0_dif > 0.1) {
     
     digitalWrite(4, HIGH);
+    V_ok=0;
     
     lcd.clear();
     lcd.setCursor(0,0);
     lcd.print("Invalid voltage");
     
     lcd.setCursor(0,1);
-    lcd.print(" A0= ");
+    lcd.print("A0= ");
     lcd.print(A0_input_volt);
+    delay(2000);
 
     lcd.setCursor(0,1);
-    lcd.print(" A1= ");
+    lcd.print("A1= ");
     lcd.print(A1_input_volt);
+    delay(2000);
 
     lcd.setCursor(0,1);
-    lcd.print(" A2= ");
+    lcd.print("A2= ");
     lcd.print(A2_input_volt);
+    delay(2000);
+    
+  } else {
+
+    digitalWrite(4, LOW);
+    V_ok=0;
+    lcd.clear();
+    lcd.print("Voltage OK");
+    
+    lcd.setCursor(0,1);
+    lcd.print("A0= ");
+    lcd.print(A0_input_volt);
+    delay(2000);
+
+    lcd.setCursor(0,1);
+    lcd.print("A1= ");
+    lcd.print(A1_input_volt);
+    delay(2000);
+
+    lcd.setCursor(0,1);
+    lcd.print("A2= ");
+    lcd.print(A2_input_volt);
+    delay(2000);
   }
 
 // Decyzja o podłączeniu ogniw solarnych
 
 // Uruchomienie pompki wody
 
+  lcd.clear();
+  lcd.print("Leje wode");
+  digitalWrite(2, LOW);
+  delay(3000);
+  lcd.clear();
+  lcd.print("Nie leje wody");
+  digitalWrite(2, HIGH);
+  delay(3000);
+  lcd.clear();
 }
