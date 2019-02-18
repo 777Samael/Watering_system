@@ -186,7 +186,7 @@ void loop() {
     delay(2000);
   }
 
-// Decyzja o podłączeniu ogniw solarnych
+//     Decyzja o podłączeniu ogniw solarnych
 // V min 10.95 (3.65/cell), V max 12.75 (4.25/cell)
 // V low 11.10 (3.70/cell), V high 12.60 (4.20/cell)
 
