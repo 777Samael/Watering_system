@@ -12,25 +12,26 @@ LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);
 float A0_input_volt = 0.0;
 float A1_input_volt = 0.0;
 float A2_input_volt = 0.0;
+float V_total       = 0.0;
 
-float A1_temp=0.0;
-float A2_temp=0.0;
+float A1_temp = 0.0;
+float A2_temp = 0.0;
 
-float A1_r1=1000.0;
-float A1_r2=1000.0;
+float A1_r1 = 1000.0;
+float A1_r2 = 1000.0;
 
-float A2_r1=2000.0;
-float A2_r2=1000.0;
+float A2_r1 = 2000.0;
+float A2_r2 = 1000.0;
 
-float A0_correction=105.9;
-float A1_correction=105.8;
-float A2_correction=106.0;
+float A0_correction = 105.9;
+float A1_correction = 105.8;
+float A2_correction = 106.0;
 
-int A0_value=0;
-int A1_value=0;
-int A2_value=0;
+int A0_value = 0;
+int A1_value = 0;
+int A2_value = 0;
 
-int V_ok=1;
+int V_ok = 1;
 
 void setup() {
 
@@ -66,32 +67,32 @@ void loop() {
 
   // A0 calculations
   A0_value = analogRead(A0);
-  A0_input_volt = (A0_value * 5.0)/1024.0; //only for Vin 0V-5V
-  A0_input_volt = (A0_input_volt/A0_correction)*100;
+  A0_input_volt = (A0_value * 5.0) / 1024.0; //only for Vin 0V-5V
+  A0_input_volt = (A0_input_volt / A0_correction) * 100;
 
   if (A0_input_volt < 0.1)
    {
-     A0_input_volt=0.0;
+     A0_input_volt = 0.0;
    }
 
   // A1 calculations
   A1_value = analogRead(A1);
-  A1_input_volt = (A1_value * 5.0)/1024.0; //only for Vin 0V-5V
-  A1_input_volt = (A1_input_volt/A1_correction)*100;
+  A1_input_volt = (A1_value * 5.0) / 1024.0; //only for Vin 0V-5V
+  A1_input_volt = (A1_input_volt / A1_correction) * 100;
 
   if (A1_input_volt < 0.1)
    {
-     A1_input_volt=0.0;
+     A1_input_volt = 0.0;
    }
 
   // A2 calculations
   A2_value = analogRead(A2);
-  A2_input_volt = (A2_value * 5.0)/1024.0; //only for Vin 0V-5V
-  A2_input_volt = (A2_input_volt/A2_correction)*100;
+  A2_input_volt = (A2_value * 5.0) / 1024.0; //only for Vin 0V-5V
+  A2_input_volt = (A2_input_volt / A2_correction) * 100;
 
   if (A2_input_volt < 0.1)
    {
-     A2_input_volt=0.0;
+     A2_input_volt  =0.0;
    }
 
   // Dokładne wartości napięcia na poszczególnych ogniwach
@@ -108,7 +109,7 @@ void loop() {
   if (A0A1_dif > 0.1 || A1A2_dif > 0.1 || A2A0_dif > 0.1) {
     
     digitalWrite(4, HIGH);
-    V_ok=0;
+    V_ok = 0;
     
     lcd.clear();
     lcd.setCursor(0,0);
@@ -132,7 +133,7 @@ void loop() {
   } else {
 
     digitalWrite(4, LOW);
-    V_ok=0;
+    V_ok = 0;
     lcd.clear();
     lcd.print("Voltage OK");
     
@@ -152,7 +153,7 @@ void loop() {
     delay(2000);
   }
 
-// Decyzja o podłączeniu ogniw solarnych
+// Decyzja o podłączeniu ogniw solarnych - V min 10.95 (3.65/cell), V max 12.75 (4.25/cell)
 
 // Uruchomienie pompki wody
 
