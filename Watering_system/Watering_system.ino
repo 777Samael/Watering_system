@@ -8,11 +8,17 @@ RTClib RTC;
 // LCD with I2C module
 LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);
 
+// Solar charging
+int Charge_run = 0;
+float Charge_limit_low  = 11.1;
+float Charge_limit_high = 12.5;
+
 // Variables for 18650 voltage calculations
 float A0_input_volt = 0.0;
 float A1_input_volt = 0.0;
 float A2_input_volt = 0.0;
 float V_total       = 0.0;
+float V_total_min   = 10.95;
 
 float A1_temp = 0.0;
 float A2_temp = 0.0;
@@ -35,17 +41,28 @@ int V_ok = 1;
 
 void setup() {
 
+  // Setting up output
   Serial.begin(9600);
   lcd.begin(16,2);
   lcd.backlight();
   //lcd.autoscroll();
 
   // LED pin for voltage differences alarm
+  pinMode(2,OUTPUT);
+
+  // LED pin for low voltage
+  pinMode(3,OUTPUT);
+
+  // LED pin for high voltage
   pinMode(4,OUTPUT);
   
   // Water pump relay pin
-  pinMode(2,OUTPUT);
-  digitalWrite(2, HIGH);
+  pinMode(6,OUTPUT);
+  digitalWrite(6, HIGH);
+
+  // Solar charger relay pin
+  pinMode(8,OUTPUT);
+  digitalWrite(8, HIGH);
 
 }
 
@@ -106,14 +123,17 @@ void loop() {
   A1A2_dif = abs(A1_input_volt - A2_input_volt);
   A2A0_dif = abs(A2_input_volt - A0_input_volt);
 
+  // Całkowita wartość napięcia
+  V_total = A0_input_volt + A1_input_volt + A2_input_volt
+
   if (A0A1_dif > 0.1 || A1A2_dif > 0.1 || A2A0_dif > 0.1) {
     
-    digitalWrite(4, HIGH);
+    digitalWrite(2, HIGH);
     V_ok = 0;
     
     lcd.clear();
     lcd.setCursor(0,0);
-    lcd.print("Invalid voltage");
+    lcd.print("Invalid V diff");
     
     lcd.setCursor(0,1);
     lcd.print("A0= ");
@@ -132,7 +152,7 @@ void loop() {
     
   } else {
 
-    digitalWrite(4, LOW);
+    digitalWrite(2, LOW);
     V_ok = 0;
     lcd.clear();
     lcd.print("Voltage OK");
@@ -153,17 +173,52 @@ void loop() {
     delay(2000);
   }
 
-// Decyzja o podłączeniu ogniw solarnych - V min 10.95 (3.65/cell), V max 12.75 (4.25/cell)
+  if (V_total < V_total_min) {
+
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("Too low voltage");
+    lcd.setCursor(0,1);
+    lcd.print("V = ");
+    lcd.print(V_total);
+    
+    digitalWrite(6, HIGH);
+    delay(2000);
+  }
+
+// Decyzja o podłączeniu ogniw solarnych
+// V min 10.95 (3.65/cell), V max 12.75 (4.25/cell)
+// V low 11.10 (3.70/cell), V high 12.60 (4.20/cell)
+
+  // Charging start condition
+  if (V_total < Charge_limit_low && Charge_run = 0) {
+    Charge_run = 1;
+  }
+
+  // Charging stop condition
+  if (V_total > Charge_limit_high && Charge_run = 1) {
+    Charge_run = 0;
+  }
+
+  // Start charging
+  if (Charge_run = 1) {
+    digitalWrite(8, LOW);
+  }
+
+ // Stop charging - discharging
+  if (Charge_run = 1) {
+    digitalWrite(8, HIGH);
+  }
 
 // Uruchomienie pompki wody
 
   lcd.clear();
   lcd.print("Leje wode");
-  digitalWrite(2, LOW);
+  digitalWrite(6, LOW);
   delay(3000);
   lcd.clear();
   lcd.print("Nie leje wody");
-  digitalWrite(2, HIGH);
+  digitalWrite(6, HIGH);
   delay(3000);
   lcd.clear();
 }
