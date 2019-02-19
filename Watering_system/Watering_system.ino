@@ -194,16 +194,17 @@ void loop() {
     lcd.setCursor(0,0);
     lcd.print("Too low voltage");
 	
-	lcd.setCursor(0,1);
+	  lcd.setCursor(0,1);
     lcd.print("V_min = ");
     lcd.print(V_total_min);
     delay(2000);
+
     lcd.setCursor(0,1);
     lcd.print("V = ");
     lcd.print(V_total);
     delay(2000);
   }
-  
+
   if (V_total > V_total_max) {
 
     V_limits_ok = false;
@@ -214,7 +215,7 @@ void loop() {
     lcd.setCursor(0,0);
     lcd.print("Too high voltage");
     
-	lcd.setCursor(0,1);
+	  lcd.setCursor(0,1);
     lcd.print("V_max = ");
     lcd.print(V_total_max);
     delay(2000);
@@ -231,7 +232,7 @@ void loop() {
 	  digitalWrite(4, LOW);
 	  
 	  // Display info message
-	lcd.clear();
+	  lcd.clear();
     lcd.setCursor(0,0);
     lcd.print("Voltage in range");
     
@@ -241,10 +242,6 @@ void loop() {
     delay(2000);
   }
 
-  // Sprawdzić jak możnaby ubrać zmienne voltage test, logika V_ok, wartości graniczne, ewentualne błędy/problemy, większa ilość zmiennych
-  
-  
-  
 // Decyzja o podłączeniu ogniw solarnych
 // V min 10.95 (3.65/cell), V max 12.75 (4.25/cell)
 // V low 11.10 (3.70/cell), V high 12.60 (4.20/cell)
