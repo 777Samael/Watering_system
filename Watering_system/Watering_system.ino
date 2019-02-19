@@ -9,7 +9,7 @@ RTClib RTC;
 LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);
 
 // Solar charging
-int Charge_run = 0;
+bool Charge_run = false;
 float Charge_limit_low  = 11.1;
 float Charge_limit_high = 12.5;
 
@@ -19,6 +19,7 @@ float A1_input_volt = 0.0;
 float A2_input_volt = 0.0;
 float V_total       = 0.0;
 float V_total_min   = 10.95;
+float V_total_max   = 12.75;
 
 float A1_temp = 0.0;
 float A2_temp = 0.0;
@@ -37,7 +38,8 @@ int A0_value = 0;
 int A1_value = 0;
 int A2_value = 0;
 
-int V_ok = 1;
+bool V_diff_ok = true;
+bool V_limits_ok = true;
 
 void setup() {
 
@@ -124,13 +126,15 @@ void loop() {
   A2A0_dif = abs(A2_input_volt - A0_input_volt);
 
   // Całkowita wartość napięcia
-  V_total = A0_input_volt + A1_input_volt + A2_input_volt
+  V_total = A0_input_volt + A1_input_volt + A2_input_volt;
 
   if (A0A1_dif > 0.1 || A1A2_dif > 0.1 || A2A0_dif > 0.1) {
     
+    // Turn on alarm LED and change the value of voltage check variable
+    V_diff_ok = false;
     digitalWrite(2, HIGH);
-    V_ok = 0;
     
+    // Display error message
     lcd.clear();
     lcd.setCursor(0,0);
     lcd.print("Invalid V diff");
@@ -152,9 +156,13 @@ void loop() {
     
   } else {
 
+    // Turn off alarm LED and change the value of voltage check variable
+    V_diff_ok = true;
     digitalWrite(2, LOW);
-    V_ok = 0;
+    
+    // Display info message
     lcd.clear();
+    lcd.setCursor(0,0);
     lcd.print("Voltage OK");
     
     lcd.setCursor(0,1);
@@ -173,40 +181,91 @@ void loop() {
     delay(2000);
   }
 
+  // Jeżeli watość napięcia na pakiecie 18650 jest zbyt niska lub zbyt wysoka
+    
+  // Turn on alarm LED and change the value of voltage check variable
   if (V_total < V_total_min) {
 
+    V_limits_ok = false;
+    digitalWrite(3, HIGH);
+    
+    // Display error message
     lcd.clear();
     lcd.setCursor(0,0);
     lcd.print("Too low voltage");
+	
+	lcd.setCursor(0,1);
+    lcd.print("V_min = ");
+    lcd.print(V_total_min);
+    delay(2000);
     lcd.setCursor(0,1);
     lcd.print("V = ");
     lcd.print(V_total);
+    delay(2000);
+  }
+  
+  if (V_total > V_total_max) {
+
+    V_limits_ok = false;
+    digitalWrite(4, HIGH);
     
-    digitalWrite(6, HIGH);
+    // Display error message
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("Too high voltage");
+    
+	lcd.setCursor(0,1);
+    lcd.print("V_max = ");
+    lcd.print(V_total_max);
+    delay(2000);
+	
+    lcd.setCursor(0,1);
+    lcd.print("V = ");
+    lcd.print(V_total);
+    delay(2000);
+  }
+  
+  if (V_total > V_total_min && V_total < V_total_max) {
+	  
+	  V_limits_ok = true;
+	  digitalWrite(4, LOW);
+	  
+	  // Display info message
+	lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("Voltage in range");
+    
+    lcd.setCursor(0,1);
+    lcd.print("V = ");
+    lcd.print(V_total);
     delay(2000);
   }
 
-//     Decyzja o podłączeniu ogniw solarnych
+  // Sprawdzić jak możnaby ubrać zmienne voltage test, logika V_ok, wartości graniczne, ewentualne błędy/problemy, większa ilość zmiennych
+  
+  
+  
+// Decyzja o podłączeniu ogniw solarnych
 // V min 10.95 (3.65/cell), V max 12.75 (4.25/cell)
 // V low 11.10 (3.70/cell), V high 12.60 (4.20/cell)
 
   // Charging start condition
-  if (V_total < Charge_limit_low && Charge_run = 0) {
-    Charge_run = 1;
+  if (V_total < Charge_limit_low && Charge_run == false) {
+    Charge_run = true;
   }
 
   // Charging stop condition
-  if (V_total > Charge_limit_high && Charge_run = 1) {
-    Charge_run = 0;
+  if (V_total > Charge_limit_high && Charge_run == true) {
+    Charge_run = false;
   }
 
   // Start charging
-  if (Charge_run = 1) {
+  if (Charge_run == true) {
     digitalWrite(8, LOW);
   }
 
  // Stop charging - discharging
-  if (Charge_run = 1) {
+  if (Charge_run == false) {
     digitalWrite(8, HIGH);
   }
 
