@@ -12,8 +12,8 @@ class Events{
   int Dlugosc;
 };
 
-int pinDigit = 2;
-int pinOnOff = 3;
+int waterPumpPin = 6; // pinDigit
+int buttonPin = 3;	  // pinOnOff
 int pinLED = 7;
 volatile int buttonFlag = 0;
 volatile bool waterNow = false;
@@ -91,6 +91,18 @@ bool V_limits_ok = true;
 
 void setup() {
 
+  // Water pump relay pin
+  pinMode(waterPumpPin,OUTPUT);
+  digitalWrite(waterPumpPin, HIGH);
+  
+  // Read watering button
+  pinMode(buttonPin, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(buttonPin),buttonClicked, CHANGE);
+  pinMode(pinLED,OUTPUT);
+
+  Timer1.initialize(1000000);
+  Timer1.attachInterrupt(ReadTimeNow);
+
   // Setting up output
   Serial.begin(9600);
   lcd.begin(16,2);
@@ -105,10 +117,6 @@ void setup() {
 
   // LED pin for high voltage
   pinMode(4,OUTPUT);
-  
-  // Water pump relay pin
-  pinMode(6,OUTPUT);
-  digitalWrite(6, HIGH);
 
   // Solar charger relay pin
   pinMode(8,OUTPUT);
@@ -316,6 +324,129 @@ void loop() {
 
 // Uruchomienie pompki wody
 
+if(buttonFlag && waterNow){
+  delay(250);
+  digitalWrite(pinDigit,LOW);
+  digitalWrite(pinLED,HIGH);
+  
+}
+
+if(buttonFlag == 0 && waterNow){
+  digitalWrite(pinDigit,HIGH);
+  digitalWrite(pinLED,LOW);
+  
+}
+
+if(buttonFlag == 0 && checkTimeFlag){
+  if (RTC.read(tm)) {
+    //Serial.print("Ok, Time = ");
+    
+    //print2digits(tm.Hour);
+    //Serial.write(':');
+    //print2digits(tm.Minute);
+    //Serial.write(':');
+    //print2digits(tm.Second);
+    
+    //Serial.print(", Date (D/M/Y) = ");
+    //Serial.print(tm.Day);
+    //Serial.write('/');
+    //Serial.print(tm.Month);
+    //Serial.write('/');
+    //Serial.print(tmYearToCalendar(tm.Year));
+    //Serial.println();
+    
+    int weekdaycalc = weekday(makeTime(tm));
+
+    for (int licznik = 0; licznik < iloscTermin; licznik++) {
+      
+      TermEvent term = kalend[licznik];
+      //Serial.println(weekday(makeTime(tm)));
+      //Serial.print(licznik + 1);
+      //.println();
+      if (weekdaycalc == term.WeekDay){
+        
+        //Serial.println("Week Day OK");
+        //Serial.print(term.Hour);
+        //Serial.write(':');
+        //Serial.print(term.Min);
+        //Serial.write(':');
+        //Serial.print(term.Sec);
+        //Serial.println("");
+        
+        if(tm.Hour == term.Hour && tm.Minute == term.Min && tm.Second == term.Sec){
+          //Serial.println("Time OK. Podlewamy!");
+          //Serial.println(term.Dlugosc);
+
+          digitalWrite(pinDigit,LOW);
+          digitalWrite(pinLED,HIGH);
+          delay(term.Dlugosc * 100);
+
+          digitalWrite(pinDigit,HIGH);
+          digitalWrite(pinLED,LOW);
+
+          
+          //Serial.println("Podlane");
+          
+          delay(1000);
+        }
+      }
+ 
+    }
+
+    if (tm.Second == 30){
+      digitalWrite(pinLED,HIGH);
+      delay(100);
+      digitalWrite(pinLED,LOW);
+      delay(100);
+      digitalWrite(pinLED,HIGH);
+      delay(100);
+      digitalWrite(pinLED,LOW);
+      delay(100);
+      digitalWrite(pinLED,HIGH);
+      delay(100);
+      digitalWrite(pinLED,LOW);
+      delay(100);
+      digitalWrite(pinLED,HIGH);
+      delay(100);
+      digitalWrite(pinLED,LOW);
+      delay(100);
+      digitalWrite(pinLED,HIGH);
+      delay(100);
+      digitalWrite(pinLED,LOW);
+      
+    }
+    checkTimeFlag=0;
+        
+  } else {
+    if (RTC.chipPresent()) {
+      //Serial.println("The DS1307 is stopped.  Please run the SetTime");
+      //Serial.println("example to initialize the time and begin running.");
+      //Serial.println();
+      digitalWrite(pinLED,HIGH);
+      delay(250);
+      digitalWrite(pinLED,LOW);
+      delay(250);
+      digitalWrite(pinLED,HIGH);
+      delay(250);
+      digitalWrite(pinLED,LOW);
+      delay(250);
+      
+    } else {
+      //Serial.println("DS1307 read error!  Please check the circuitry.");
+      //Serial.println();
+      digitalWrite(pinLED,HIGH);
+      delay(250);
+      digitalWrite(pinLED,LOW);
+      delay(250);
+      digitalWrite(pinLED,HIGH);
+      delay(250);
+      digitalWrite(pinLED,LOW);
+      delay(250);
+    }
+    delay(9000);
+  }
+}
+
   lcd.clear();
   lcd.print("Leje wode");
   digitalWrite(6, LOW);
@@ -335,4 +466,25 @@ void ledBlink(int pinLED, int blinkCount, int intervalTime) {
 		digitalWrite(pinLED, LOW);
 		delay(intervalTime);
 	}
+}
+
+void print2digits(int number) {
+  if (number >= 0 && number < 10) {
+    Serial.write('0');
+  }
+  Serial.print(number);
+}
+
+void buttonClicked(){
+  if(digitalRead(pinOnOff)== LOW){
+    buttonFlag = 1;
+  }
+  else{
+    buttonFlag = 0;
+  }
+  waterNow= true;
+}
+
+void ReadTimeNow(){
+  checkTimeFlag=1;
 }
