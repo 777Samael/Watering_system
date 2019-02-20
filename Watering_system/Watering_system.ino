@@ -2,6 +2,54 @@
 #include "DS3231.h"
 #include <LiquidCrystal_I2C.h>
 
+//--------------------------------
+
+class Events{
+  public:
+  plannedEvent(const char* value);
+  int Hour, Min, Sec;
+  int WeekDay;
+  int Dlugosc;
+};
+
+int pinDigit = 2;
+int pinOnOff = 3;
+int pinLED = 7;
+volatile int buttonFlag = 0;
+volatile bool waterNow = false;
+volatile int checkTimeFlag = 0;
+
+plannedEvent::plannedEvent(const char* value)
+{
+  sscanf(value, "%d %d %d %d %d", &WeekDay, &Hour, &Min, &Sec, &Dlugosc);
+}
+//Dlugosc  ---- 10 to sekunda !!!
+// 1 to niedziela
+plannedEvent kalend[]={
+  plannedEvent("1 08 00 00 32"),
+  plannedEvent("1 20 00 00 32"),
+  plannedEvent("2 08 00 00 32"),
+  plannedEvent("2 20 00 00 32"),
+  plannedEvent("3 08 00 00 32"),
+  plannedEvent("3 20 00 00 32"),
+  plannedEvent("4 08 00 00 32"),
+  plannedEvent("4 20 00 00 32"),
+  plannedEvent("5 08 00 00 32"),
+  plannedEvent("5 20 00 00 32"),
+  plannedEvent("6 08 00 00 32"),
+  plannedEvent("6 20 00 00 32"),
+  plannedEvent("7 08 00 00 32"),
+  plannedEvent("7 20 00 00 32"),
+  };
+
+// 45.5 ml / sek
+// 11 to 50 ml
+
+int iloscTermin = 14;
+tmElements_t tm;
+
+//--------------------------------
+
 // Real Time Clock DS3231
 RTClib RTC;
 
