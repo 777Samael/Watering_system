@@ -278,3 +278,13 @@ void loop() {
   delay(3000);
   lcd.clear();
 }
+
+void ledBlink(int pinLED, int blinkCount, int intervalTime) {
+  
+	for (int i; i < blinkCount; i++) {
+		digitalWrite(pinLED, HIGH);
+		delay(intervalTime);
+		digitalWrite(pinLED, LOW);
+		delay(intervalTime);
+	}
+}
