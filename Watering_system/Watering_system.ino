@@ -1,6 +1,18 @@
+/*
+*  TO DO
+*	save logs to SD card
+*	connect via WiFi
+*/
+
 //#include <Wire.h>
 #include "DS3231.h"
 #include <LiquidCrystal_I2C.h>
+
+// Real Time Clock DS3231
+RTClib RTC;
+
+// LCD with I2C module
+LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);
 
 //--------------------------------
 
@@ -12,13 +24,7 @@ class Events{
   int Dlugosc;
 };
 
-int waterPumpPin = 6; // pinDigit
-int buttonPin = 3;	  // pinOnOff
-int pinLED = 7;
-volatile int buttonFlag = 0;
-volatile bool waterNow = false;
-volatile int checkTimeFlag = 0;
-
+// Watering schedule
 plannedEvent::plannedEvent(const char* value)
 {
   sscanf(value, "%d %d %d %d %d", &WeekDay, &Hour, &Min, &Sec, &Dlugosc);
@@ -50,11 +56,21 @@ tmElements_t tm;
 
 //--------------------------------
 
-// Real Time Clock DS3231
-RTClib RTC;
+// I/O pins
+int buttonPin = 2;		// pinOnOff
+int voltageDiffPin = 3;	// LED pin for voltage differences alarm
+int LowVoltagePin = 4;	// LED pin for low / high voltage alarm
+int HighVoltagePin = 5;	// LED pin for low / high voltage alarm
+int chargingPin = 6;	// LED pin for charging indicator
 
-// LCD with I2C module
-LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);
+int waterPumpPin = 7;	// pinDigit
+int pinLED = 8;			// watering is ON, read time error
+int solarPanelPin = 9;	// Solar charger relay pin
+
+// Variables for custom watering using button
+volatile int buttonFlag = 0;
+volatile bool waterNow = false;
+volatile int checkTimeFlag = 0;
 
 // Solar charging
 bool Charge_run = false;
@@ -243,14 +259,15 @@ void loop() {
   if (V_total < V_total_min) {
 
     V_limits_ok = false;
+	voltageLimitsPin
     digitalWrite(3, HIGH);
     
     // Display error message
     lcd.clear();
     lcd.setCursor(0,0);
     lcd.print("Too low voltage");
-	
-	  lcd.setCursor(0,1);
+
+	lcd.setCursor(0,1);
     lcd.print("V_min = ");
     lcd.print(V_total_min);
     delay(2000);
@@ -271,7 +288,7 @@ void loop() {
     lcd.setCursor(0,0);
     lcd.print("Too high voltage");
     
-	  lcd.setCursor(0,1);
+	lcd.setCursor(0,1);
     lcd.print("V_max = ");
     lcd.print(V_total_max);
     delay(2000);
@@ -314,25 +331,25 @@ void loop() {
 
   // Start charging
   if (Charge_run == true) {
-    digitalWrite(8, LOW);
+    digitalWrite(solarPanelPin, LOW);
   }
 
  // Stop charging - discharging
   if (Charge_run == false) {
-    digitalWrite(8, HIGH);
+    digitalWrite(solarPanelPin, HIGH);
   }
 
 // Uruchomienie pompki wody
 
 if(buttonFlag && waterNow){
   delay(250);
-  digitalWrite(pinDigit,LOW);
+  digitalWrite(waterPumpPin,LOW);
   digitalWrite(pinLED,HIGH);
   
 }
 
 if(buttonFlag == 0 && waterNow){
-  digitalWrite(pinDigit,HIGH);
+  digitalWrite(waterPumpPin,HIGH);
   digitalWrite(pinLED,LOW);
   
 }
@@ -377,11 +394,11 @@ if(buttonFlag == 0 && checkTimeFlag){
           //Serial.println("Time OK. Podlewamy!");
           //Serial.println(term.Dlugosc);
 
-          digitalWrite(pinDigit,LOW);
+          digitalWrite(waterPumpPin,LOW);
           digitalWrite(pinLED,HIGH);
           delay(term.Dlugosc * 100);
 
-          digitalWrite(pinDigit,HIGH);
+          digitalWrite(waterPumpPin,HIGH);
           digitalWrite(pinLED,LOW);
 
           
@@ -449,11 +466,11 @@ if(buttonFlag == 0 && checkTimeFlag){
 
   lcd.clear();
   lcd.print("Leje wode");
-  digitalWrite(6, LOW);
+  digitalWrite(waterPumpPin, LOW);
   delay(3000);
   lcd.clear();
   lcd.print("Nie leje wody");
-  digitalWrite(6, HIGH);
+  digitalWrite(waterPumpPin, HIGH);
   delay(3000);
   lcd.clear();
 }
@@ -476,7 +493,7 @@ void print2digits(int number) {
 }
 
 void buttonClicked(){
-  if(digitalRead(pinOnOff)== LOW){
+  if(digitalRead(buttonPin)== LOW){
     buttonFlag = 1;
   }
   else{
