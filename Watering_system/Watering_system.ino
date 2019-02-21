@@ -7,6 +7,7 @@
 //#include <Wire.h>
 #include "DS3231.h"
 #include <LiquidCrystal_I2C.h>
+#include <TimerOne.h>
 
 // Real Time Clock DS3231
 RTClib RTC;
@@ -57,15 +58,15 @@ tmElements_t tm;
 //--------------------------------
 
 // I/O pins
-int buttonPin = 2;		// pinOnOff
-int voltageDiffPin = 3;	// LED pin for voltage differences alarm
-int LowVoltagePin = 4;	// LED pin for low / high voltage alarm
-int HighVoltagePin = 5;	// LED pin for low / high voltage alarm
-int chargingPin = 6;	// LED pin for charging indicator
+int buttonPin		= 2;	// On/Off pin for custom watering
+int voltageDiffPin	= 3;	// LED pin for voltage differences alarm     voltageDiffPin -> voltageDiffLED ??? itd
+int LowVoltagePin	= 4;	// LED pin for low / high voltage alarm
+int HighVoltagePin	= 5;	// LED pin for low / high voltage alarm
+int chargingPin		= 6;	// LED pin for charging indicator
+int wateringLED		= 7;	// watering is ON, read time error (pinLED)
 
-int waterPumpPin = 7;	// pinDigit
-int pinLED = 8;			// watering is ON, read time error
-int solarPanelPin = 9;	// Solar charger relay pin
+int waterPumpPin	= 8;	// Water pump relay pin (pinDigit)
+int solarPanelPin	= 9;	// Solar charger relay pin
 
 // Variables for custom watering using button
 volatile int buttonFlag = 0;
@@ -107,36 +108,37 @@ bool V_limits_ok = true;
 
 void setup() {
 
-  // Water pump relay pin
-  pinMode(waterPumpPin,OUTPUT);
-  digitalWrite(waterPumpPin, HIGH);
-  
-  // Read watering button
-  pinMode(buttonPin, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(buttonPin),buttonClicked, CHANGE);
-  pinMode(pinLED,OUTPUT);
-
-  Timer1.initialize(1000000);
-  Timer1.attachInterrupt(ReadTimeNow);
-
-  // Setting up output
+// Setting up output
   Serial.begin(9600);
   lcd.begin(16,2);
   lcd.backlight();
   //lcd.autoscroll();
 
-  // LED pin for voltage differences alarm
-  pinMode(2,OUTPUT);
+// Setting up pins
 
-  // LED pin for low voltage
-  pinMode(3,OUTPUT);
+  // Read watering button
+  pinMode(buttonPin, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(buttonPin),buttonClicked, CHANGE);
+  pinMode(wateringLED,OUTPUT);
 
-  // LED pin for high voltage
-  pinMode(4,OUTPUT);
+  // LEDs
+  pinMode(voltageDiffPin,OUTPUT);	// LED pin for voltage differences alarm
+  pinMode(LowVoltagePin,OUTPUT);	// LED pin for low voltage
+  pinMode(HighVoltagePin,OUTPUT);	// LED pin for high voltage
+  pinMode(chargingPin,OUTPUT);		// LED pin for charging indicator
+  pinMode(wateringLED,OUTPUT);		// watering is ON, read time error (pinLED)
+
+  // Water pump relay pin
+  pinMode(waterPumpPin,OUTPUT);
+  digitalWrite(waterPumpPin, HIGH);
 
   // Solar charger relay pin
-  pinMode(8,OUTPUT);
-  digitalWrite(8, HIGH);
+  pinMode(solarPanelPin,OUTPUT);
+  digitalWrite(solarPanelPin, HIGH);
+  
+  // Initialize interruptions?
+  Timer1.initialize(1000000);
+  Timer1.attachInterrupt(ReadTimeNow);
 
 }
 
@@ -201,16 +203,16 @@ void loop() {
   V_total = A0_input_volt + A1_input_volt + A2_input_volt;
 
   if (A0A1_dif > 0.1 || A1A2_dif > 0.1 || A2A0_dif > 0.1) {
-    
+
     // Turn on alarm LED and change the value of voltage check variable
     V_diff_ok = false;
     digitalWrite(2, HIGH);
-    
+
     // Display error message
     lcd.clear();
     lcd.setCursor(0,0);
     lcd.print("Invalid V diff");
-    
+
     lcd.setCursor(0,1);
     lcd.print("A0= ");
     lcd.print(A0_input_volt);
@@ -225,7 +227,7 @@ void loop() {
     lcd.print("A2= ");
     lcd.print(A2_input_volt);
     delay(2000);
-    
+
   } else {
 
     // Turn off alarm LED and change the value of voltage check variable
@@ -288,24 +290,24 @@ void loop() {
     lcd.setCursor(0,0);
     lcd.print("Too high voltage");
     
-	lcd.setCursor(0,1);
+    lcd.setCursor(0,1);
     lcd.print("V_max = ");
     lcd.print(V_total_max);
     delay(2000);
-	
+
     lcd.setCursor(0,1);
     lcd.print("V = ");
     lcd.print(V_total);
     delay(2000);
   }
-  
+
   if (V_total > V_total_min && V_total < V_total_max) {
-	  
-	  V_limits_ok = true;
-	  digitalWrite(4, LOW);
-	  
-	  // Display info message
-	  lcd.clear();
+    
+    V_limits_ok = true;
+    digitalWrite(4, LOW);
+    
+    // Display info message
+    lcd.clear();
     lcd.setCursor(0,0);
     lcd.print("Voltage in range");
     
@@ -344,13 +346,13 @@ void loop() {
 if(buttonFlag && waterNow){
   delay(250);
   digitalWrite(waterPumpPin,LOW);
-  digitalWrite(pinLED,HIGH);
+  digitalWrite(wateringLED,HIGH);
   
 }
 
 if(buttonFlag == 0 && waterNow){
   digitalWrite(waterPumpPin,HIGH);
-  digitalWrite(pinLED,LOW);
+  digitalWrite(wateringLED,LOW);
   
 }
 
@@ -395,11 +397,11 @@ if(buttonFlag == 0 && checkTimeFlag){
           //Serial.println(term.Dlugosc);
 
           digitalWrite(waterPumpPin,LOW);
-          digitalWrite(pinLED,HIGH);
+          digitalWrite(wateringLED,HIGH);
           delay(term.Dlugosc * 100);
 
           digitalWrite(waterPumpPin,HIGH);
-          digitalWrite(pinLED,LOW);
+          digitalWrite(wateringLED,LOW);
 
           
           //Serial.println("Podlane");
@@ -411,25 +413,25 @@ if(buttonFlag == 0 && checkTimeFlag){
     }
 
     if (tm.Second == 30){
-      digitalWrite(pinLED,HIGH);
+      digitalWrite(wateringLED,HIGH);
       delay(100);
-      digitalWrite(pinLED,LOW);
+      digitalWrite(wateringLED,LOW);
       delay(100);
-      digitalWrite(pinLED,HIGH);
+      digitalWrite(wateringLED,HIGH);
       delay(100);
-      digitalWrite(pinLED,LOW);
+      digitalWrite(wateringLED,LOW);
       delay(100);
-      digitalWrite(pinLED,HIGH);
+      digitalWrite(wateringLED,HIGH);
       delay(100);
-      digitalWrite(pinLED,LOW);
+      digitalWrite(wateringLED,LOW);
       delay(100);
-      digitalWrite(pinLED,HIGH);
+      digitalWrite(wateringLED,HIGH);
       delay(100);
-      digitalWrite(pinLED,LOW);
+      digitalWrite(wateringLED,LOW);
       delay(100);
-      digitalWrite(pinLED,HIGH);
+      digitalWrite(wateringLED,HIGH);
       delay(100);
-      digitalWrite(pinLED,LOW);
+      digitalWrite(wateringLED,LOW);
       
     }
     checkTimeFlag=0;
@@ -439,25 +441,25 @@ if(buttonFlag == 0 && checkTimeFlag){
       //Serial.println("The DS1307 is stopped.  Please run the SetTime");
       //Serial.println("example to initialize the time and begin running.");
       //Serial.println();
-      digitalWrite(pinLED,HIGH);
+      digitalWrite(wateringLED,HIGH);
       delay(250);
-      digitalWrite(pinLED,LOW);
+      digitalWrite(wateringLED,LOW);
       delay(250);
-      digitalWrite(pinLED,HIGH);
+      digitalWrite(wateringLED,HIGH);
       delay(250);
-      digitalWrite(pinLED,LOW);
+      digitalWrite(wateringLED,LOW);
       delay(250);
       
     } else {
       //Serial.println("DS1307 read error!  Please check the circuitry.");
       //Serial.println();
-      digitalWrite(pinLED,HIGH);
+      digitalWrite(wateringLED,HIGH);
       delay(250);
-      digitalWrite(pinLED,LOW);
+      digitalWrite(wateringLED,LOW);
       delay(250);
-      digitalWrite(pinLED,HIGH);
+      digitalWrite(wateringLED,HIGH);
       delay(250);
-      digitalWrite(pinLED,LOW);
+      digitalWrite(wateringLED,LOW);
       delay(250);
     }
     delay(9000);
