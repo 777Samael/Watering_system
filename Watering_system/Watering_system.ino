@@ -9,13 +9,14 @@
 *   connect via WiFi
 *   V_limits_ok == false && buttonFlag && waterNow -> use buzzer
 *   other uses of buzzer
+*   describe all variables
 *   
 *   DONE
 *   sprawdzić wydajność pompki, czy na pewno 45.5 ml / sek
 *   Wydajność 47 sek > 2L - 42,5 ml sek
 */
 
-//#include <Wire.h>
+#include <Wire.h>
 #include "DS3231.h"
 #include <LiquidCrystal_I2C.h>
 #include <TimerOne.h>
@@ -118,10 +119,11 @@ bool V_limits_ok  = true;
 void setup() {
 
 // Setting up output
-  Serial.begin(9600);
-  lcd.begin(16,2);
-  lcd.backlight();
-  //lcd.autoscroll();
+  Wire.begin();       // Start the I2C interface
+  Serial.begin(9600); // Start the serial interface
+  lcd.begin(16,2);    // Init the LCD 2x16
+  lcd.backlight();    // turn of backlight
+  //lcd.autoscroll(); // turn on autoscroll
 
 // Setting up pins
 
@@ -148,7 +150,6 @@ void setup() {
   // Initialize interruptions?
   Timer1.initialize(1000000);
   Timer1.attachInterrupt(ReadTimeNow);
-
 }
 
 void loop() {
@@ -156,8 +157,8 @@ void loop() {
 // Odczyt czasu z RTC
   //DateTime tNow = RTC.now();
   int yearNow     = RTC.getYear();
-  //int monthNow    = RTC.getMonth(Century);
-  //int dayNow      = RTC.getDate();
+  int monthNow    = RTC.getMonth(Century);
+  int dayNow      = RTC.getDate();
   int wDayNow     = RTC.getDoW();
   int hourNow     = RTC.getHour(h12, PM);
   int minuteNow   = RTC.getMinute();
@@ -165,6 +166,28 @@ void loop() {
   float A0A1_dif  = 0.0;
   float A1A2_dif  = 0.0;
   float A2A0_dif  = 0.0;
+
+  Serial.print("yearNow = ");
+  Serial.println(yearNow);
+  Serial.print("monthNow = ");
+  Serial.println(monthNow);
+  Serial.print("dayNow = ");
+  Serial.println(dayNow);
+  Serial.print("wDayNow = ");
+  Serial.println(wDayNow);
+  Serial.print("hourNow = ");
+  Serial.println(hourNow);
+  Serial.print("minuteNow = ");
+  Serial.println(minuteNow);
+  Serial.print("secondNow = ");
+  Serial.println(secondNow);
+  Serial.print("A0A1_dif = ");
+  Serial.println(A0A1_dif);
+  Serial.print("A1A2_dif = ");
+  Serial.println(A1A2_dif);
+  Serial.print("A2A0_dif = ");
+  Serial.println(A2A0_dif);
+  delay(5000);
 
 // Sprawdzanie napięcia na ogniwach
 
@@ -202,6 +225,14 @@ void loop() {
   A1_input_volt = (2 * A1_input_volt) - A0_input_volt;
   A2_input_volt = (3 * A2_input_volt) - (2 * A1_input_volt);
 
+  Serial.print("A0_input_volt = ");
+  Serial.println(A0_input_volt);
+  Serial.print("A1_input_volt = ");
+  Serial.println(A1_input_volt);
+  Serial.print("A2_input_volt = ");
+  Serial.println(A2_input_volt);
+  delay(5000);
+
 // Obsługa alarmu przy nieprawidłowych wartościach napięcia
 
   // jeżeli któreś z ogniw ma mniejsze lub większe napięcie o 0,1V niż pozostałe
@@ -209,8 +240,20 @@ void loop() {
   A1A2_dif = abs(A1_input_volt - A2_input_volt);
   A2A0_dif = abs(A2_input_volt - A0_input_volt);
 
+  Serial.print("A0A1_dif = ");
+  Serial.println(A0A1_dif);
+  Serial.print("A1A2_dif = ");
+  Serial.println(A1A2_dif);
+  Serial.print("A2A0_dif = ");
+  Serial.println(A2A0_dif);
+  delay(5000);
+
   // Całkowita wartość napięcia
   V_total = A0_input_volt + A1_input_volt + A2_input_volt;
+
+  Serial.print("V_total = ");
+  Serial.println(V_total);
+  delay(5000);
 
   if (A0A1_dif > 0.1 || A1A2_dif > 0.1 || A2A0_dif > 0.1) {
 
@@ -222,20 +265,27 @@ void loop() {
     lcd.clear();
     lcd.setCursor(0,0);
     lcd.print("Invalid V diff");
+    Serial.println("Invalid V diff");
 
     lcd.setCursor(0,1);
     lcd.print("A0= ");
     lcd.print(A0_input_volt);
+    Serial.print("A0= ");
+    Serial.println(A0_input_volt);
     delay(2000);
 
     lcd.setCursor(0,1);
     lcd.print("A1= ");
     lcd.print(A1_input_volt);
+    Serial.print("A1= ");
+    Serial.println(A1_input_volt);
     delay(2000);
 
     lcd.setCursor(0,1);
     lcd.print("A2= ");
     lcd.print(A2_input_volt);
+    Serial.print("A2= ");
+    Serial.println(A2_input_volt);
     delay(2000);
 
   } else {
@@ -248,20 +298,27 @@ void loop() {
     lcd.clear();
     lcd.setCursor(0,0);
     lcd.print("Voltage OK");
+    Serial.println("Voltage OK");
     
     lcd.setCursor(0,1);
     lcd.print("A0= ");
     lcd.print(A0_input_volt);
+    Serial.print("A0= ");
+    Serial.println(A0_input_volt);
     delay(2000);
 
     lcd.setCursor(0,1);
     lcd.print("A1= ");
     lcd.print(A1_input_volt);
+    Serial.print("A1= ");
+    Serial.println(A1_input_volt);
     delay(2000);
 
     lcd.setCursor(0,1);
     lcd.print("A2= ");
     lcd.print(A2_input_volt);
+    Serial.print("A2= ");
+    Serial.println(A2_input_volt);
     delay(2000);
   }
 
@@ -277,15 +334,21 @@ void loop() {
     lcd.clear();
     lcd.setCursor(0,0);
     lcd.print("Too low voltage");
+    Serial.println("Too low voltage");
+    Serial.println(A2_input_volt);
 
   lcd.setCursor(0,1);
     lcd.print("V_min = ");
     lcd.print(V_total_min);
+    Serial.print("V_min = ");
+    Serial.println(V_total_min);
     delay(2000);
 
     lcd.setCursor(0,1);
     lcd.print("V = ");
     lcd.print(V_total);
+    Serial.print("V = ");
+    Serial.println(V_total);
     delay(2000);
   }
 
@@ -298,15 +361,20 @@ void loop() {
     lcd.clear();
     lcd.setCursor(0,0);
     lcd.print("Too high voltage");
+    Serial.println("Too high voltage");
     
     lcd.setCursor(0,1);
     lcd.print("V_max = ");
     lcd.print(V_total_max);
+    Serial.print("V_max = ");
+    Serial.println(V_total_max);
     delay(2000);
 
     lcd.setCursor(0,1);
     lcd.print("V = ");
     lcd.print(V_total);
+    Serial.print("V = ");
+    Serial.println(V_total);
     delay(2000);
   }
 
@@ -319,10 +387,13 @@ void loop() {
     lcd.clear();
     lcd.setCursor(0,0);
     lcd.print("Voltage in range");
+    Serial.print("Voltage in range");
     
     lcd.setCursor(0,1);
     lcd.print("V = ");
     lcd.print(V_total);
+    Serial.print("V = ");
+    Serial.println(V_total);
     delay(2000);
   }
 
@@ -333,21 +404,25 @@ void loop() {
   // Charging start condition
   if (V_total < Charge_limit_low && Charge_run == false) {
     Charge_run = true;
+    Serial.println("Charge_run = true");
   }
 
   // Charging stop condition
   if (V_total > Charge_limit_high && Charge_run == true) {
     Charge_run = false;
+    Serial.println("Charge_run = false");
   }
 
   // Start charging
   if (Charge_run == true) {
     digitalWrite(solarPanelPin, LOW);
+    Serial.println("digitalWrite(solarPanelPin, LOW)");
   }
 
  // Stop charging - discharging
   if (Charge_run == false) {
     digitalWrite(solarPanelPin, HIGH);
+    Serial.println("digitalWrite(solarPanelPin, HIGH)");
   }
 
 // Uruchomienie pompki wody
@@ -356,17 +431,21 @@ void loop() {
     delay(250);
     digitalWrite(waterPumpPin,LOW);
     digitalWrite(wateringLED,HIGH);
+    Serial.println("The button is pressed, water pump is working.");
     
   }
 
   if(buttonFlag == 0 && waterNow){
     digitalWrite(waterPumpPin,HIGH);
     digitalWrite(wateringLED,LOW);
+    Serial.println("The button has been released, water pump stopped working.");
     
   }
 
   if(buttonFlag == 0 && checkTimeFlag){
+    Serial.println("Inside: if(buttonFlag == 0 && checkTimeFlag)");
     if (yearNow < 50) {
+      Serial.println("Inside: if (yearNow < 50)");
       //Serial.print("Ok, Time = ");
       
       //print2digits(tm.Hour);
@@ -385,12 +464,14 @@ void loop() {
 
       for (int i = 0; i < eventCount; i++) {
 
-        plannedEvent event = schedule[i]; // term->event; term->schedule
+        Serial.println("Inside: for (int i = 0; i < eventCount; i++)");
+        plannedEvent event = schedule[i];
         //Serial.println(weekday(makeTime(tm)));
         //Serial.print(i + 1);
         //.println();
         if (wDayNow == event.WeekDay){ // weekdaycalc-> wDayNow 
-          
+
+          Serial.println("Inside: if (wDayNow == event.WeekDay)");
           //Serial.println("Week Day OK");
           //Serial.print(event.Hour);
           //Serial.write(':');
@@ -400,7 +481,9 @@ void loop() {
           //Serial.println("");
           
       // Watering
-          if(hourNow == event.Hour && minuteNow == event.Min && secondNow == event.Sec){ // tm.Hour -> hourNow; tm.Minute -> minuteNow; tm.Second -> secondNow
+          if(hourNow == event.Hour && minuteNow == event.Min && secondNow == event.Sec){
+
+            Serial.println("Inside: if(hourNow == event.Hour && minuteNow == event.Min && secondNow == event.Sec)");
             //Serial.println("Time OK. Podlewamy!");
             //Serial.println(event.Dlugosc);
   
@@ -426,7 +509,8 @@ void loop() {
 
     } else {
     // In case of disconnection of RTC or RTC has a malfunction
-      if (yearNow < 50) {
+      if (!yearNow < 50) {
+        Serial.println("Inside: if (!yearNow < 50)");
         //Serial.println("The DS3231 is stopped.  Please run the SetTime");
         //Serial.println("example to initialize the time and begin running.");
         //Serial.println();
