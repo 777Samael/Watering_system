@@ -1,15 +1,18 @@
 /*
 *  TO DO NOW
-*   sprawdzić wydajność pompki, czy na pewno 45.5 ml / sek
 *   dodać Serial.print do testów
 *   dodać lcd.print do testów / na stałe
 *  
 *  TO DO LATER
-*	water level indicator / water pump power cutoff -> low water level signal !!!
-*	save logs to SD card
-*	connect via WiFi
-*	V_limits_ok == false && buttonFlag && waterNow -> use buzzer
+*   water level indicator / water pump power cutoff -> low water level signal !!!
+*   save logs to SD card
+*   connect via WiFi
+*   V_limits_ok == false && buttonFlag && waterNow -> use buzzer
 *   other uses of buzzer
+*   
+*   DONE
+*   sprawdzić wydajność pompki, czy na pewno 45.5 ml / sek
+*   Wydajność 47 sek > 2L - 42,5 ml sek
 */
 
 //#include <Wire.h>
@@ -18,12 +21,18 @@
 #include <TimerOne.h>
 
 // Real Time Clock DS3231
-RTClib RTC;
+//RTClib RTC;
+DS3231 RTC;
+bool Century=false;
+bool h12;
+bool PM;
+
+//tmElements_t tm;
 
 // LCD with I2C module
 LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);
 
-class Events{
+class plannedEvent{
   public:
   plannedEvent(const char* value);
   int Hour, Min, Sec;
@@ -55,27 +64,23 @@ plannedEvent schedule[]={  // term->schedule
   plannedEvent("7 20 00 00 32"),
   };
 
-// 45.5 ml / sek
-// 11 to 50 ml
-
-int iloscTermin = 14;
-tmElements_t tm;
+int eventCount = 14;
 
 // I/O pins
-int buttonPin		= 2;	// On/Off pin for custom watering
-int voltageDiffPin	= 3;	// LED pin for voltage differences alarm     voltageDiffPin -> voltageDiffLED ??? itd
-int LowVoltagePin	= 4;	// LED pin for low / high voltage alarm
-int HighVoltagePin	= 5;	// LED pin for low / high voltage alarm
-int chargingPin		= 6;	// LED pin for charging indicator
-int wateringLED		= 7;	// watering is ON, read time error (pinLED)
+int buttonPin       = 2;  // On/Off pin for custom watering
+int voltageDiffPin  = 3;  // LED pin for voltage differences alarm     voltageDiffPin -> voltageDiffLED ??? itd
+int LowVoltagePin   = 4;  // LED pin for low / high voltage alarm
+int HighVoltagePin  = 5;  // LED pin for low / high voltage alarm
+int chargingPin     = 6;  // LED pin for charging indicator
+int wateringLED     = 7;  // watering is ON, read time error (pinLED)
 
-int waterPumpPin	= 8;	// Water pump relay pin (pinDigit)
-int solarPanelPin	= 9;	// Solar charger relay pin
+int waterPumpPin  = 8;  // Water pump relay pin (pinDigit)
+int solarPanelPin = 9;  // Solar charger relay pin
 
 // Variables for custom watering using button
-volatile int buttonFlag = 0;
-volatile bool waterNow = false;
-volatile int checkTimeFlag = 0;
+volatile int buttonFlag     = 0;
+volatile bool waterNow      = false;
+volatile int checkTimeFlag  = 0;
 
 // Solar charging
 bool Charge_run = false;
@@ -107,8 +112,8 @@ int A0_value = 0;
 int A1_value = 0;
 int A2_value = 0;
 
-bool V_diff_ok = true;
-bool V_limits_ok = true;
+bool V_diff_ok    = true;
+bool V_limits_ok  = true;
 
 void setup() {
 
@@ -126,11 +131,11 @@ void setup() {
   pinMode(wateringLED,OUTPUT);
 
   // LEDs
-  pinMode(voltageDiffPin,OUTPUT);	// LED pin for voltage differences alarm
-  pinMode(LowVoltagePin,OUTPUT);	// LED pin for low voltage
-  pinMode(HighVoltagePin,OUTPUT);	// LED pin for high voltage
-  pinMode(chargingPin,OUTPUT);		// LED pin for charging indicator
-  pinMode(wateringLED,OUTPUT);		// watering is ON, read time error (pinLED)
+  pinMode(voltageDiffPin,OUTPUT); // LED pin for voltage differences alarm
+  pinMode(LowVoltagePin,OUTPUT);  // LED pin for low voltage
+  pinMode(HighVoltagePin,OUTPUT); // LED pin for high voltage
+  pinMode(chargingPin,OUTPUT);    // LED pin for charging indicator
+  pinMode(wateringLED,OUTPUT);    // watering is ON, read time error (pinLED)
 
   // Water pump relay pin
   pinMode(waterPumpPin,OUTPUT);
@@ -149,14 +154,14 @@ void setup() {
 void loop() {
 
 // Odczyt czasu z RTC
-  DateTime tNow = RTC.now();
-  //int yearNow    = tNow.year();
-  //int monthNow   = tNow.month();
-  //int dayNow     = tNow.day();
-  int wDayNow     = weekday(makeTime(tm)); // zobaczyć czy da się zrobić prze dot notation z tNow()
-  int hourNow     = tNow.hour();
-  int minuteNow   = tNow.minute();
-  int secondNow   = tNow.second();
+  //DateTime tNow = RTC.now();
+  int yearNow     = RTC.getYear();
+  //int monthNow    = RTC.getMonth(Century);
+  //int dayNow      = RTC.getDate();
+  int wDayNow     = RTC.getDoW();
+  int hourNow     = RTC.getHour(h12, PM);
+  int minuteNow   = RTC.getMinute();
+  int secondNow   = RTC.getSecond();
   float A0A1_dif  = 0.0;
   float A1A2_dif  = 0.0;
   float A2A0_dif  = 0.0;
@@ -266,7 +271,6 @@ void loop() {
   if (V_total < V_total_min) {
 
     V_limits_ok = false;
-	voltageLimitsPin
     digitalWrite(3, HIGH);
     
     // Display error message
@@ -274,7 +278,7 @@ void loop() {
     lcd.setCursor(0,0);
     lcd.print("Too low voltage");
 
-	lcd.setCursor(0,1);
+  lcd.setCursor(0,1);
     lcd.print("V_min = ");
     lcd.print(V_total_min);
     delay(2000);
@@ -348,120 +352,117 @@ void loop() {
 
 // Uruchomienie pompki wody
 
-if(buttonFlag && waterNow && V_limits_ok){
-  delay(250);
-  digitalWrite(waterPumpPin,LOW);
-  digitalWrite(wateringLED,HIGH);
-  
-}
-
-if(buttonFlag == 0 && waterNow){
-  digitalWrite(waterPumpPin,HIGH);
-  digitalWrite(wateringLED,LOW);
-  
-}
-
-if(buttonFlag == 0 && checkTimeFlag){
-  if (RTC.read(tm)) {
-    //Serial.print("Ok, Time = ");
+  if(buttonFlag && waterNow && V_limits_ok){
+    delay(250);
+    digitalWrite(waterPumpPin,LOW);
+    digitalWrite(wateringLED,HIGH);
     
-    //print2digits(tm.Hour);
-    //Serial.write(':');
-    //print2digits(tm.Minute);
-    //Serial.write(':');
-    //print2digits(tm.Second);
-    
-    //Serial.print(", Date (D/M/Y) = ");
-    //Serial.print(tm.Day);
-    //Serial.write('/');
-    //Serial.print(tm.Month);
-    //Serial.write('/');
-    //Serial.print(tmYearToCalendar(tm.Year));
-    //Serial.println();
-    
-    //-----------------------------------------------------
+  }
 
-    for (int licznik = 0; licznik < iloscTermin; licznik++) {
+  if(buttonFlag == 0 && waterNow){
+    digitalWrite(waterPumpPin,HIGH);
+    digitalWrite(wateringLED,LOW);
+    
+  }
+
+  if(buttonFlag == 0 && checkTimeFlag){
+    if (yearNow < 50) {
+      //Serial.print("Ok, Time = ");
       
-      TermEvent event = schedule[licznik]; // term->event; term->schedule
-      //Serial.println(weekday(makeTime(tm)));
-      //Serial.print(licznik + 1);
-      //.println();
-      if (wDayNow == event.WeekDay){ // weekdaycalc-> wDayNow 
-        
-        //Serial.println("Week Day OK");
-        //Serial.print(event.Hour);
-        //Serial.write(':');
-        //Serial.print(event.Min);
-        //Serial.write(':');
-        //Serial.print(event.Sec);
-        //Serial.println("");
-        
-		// Watering
-        if(hourNow == event.Hour && minuteNow == event.Min && secondNow == event.Sec){ // tm.Hour -> hourNow; tm.Minute -> minuteNow; tm.Second -> secondNow
-          //Serial.println("Time OK. Podlewamy!");
-          //Serial.println(event.Dlugosc);
+      //print2digits(tm.Hour);
+      //Serial.write(':');
+      //print2digits(tm.Minute);
+      //Serial.write(':');
+      //print2digits(tm.Second);
+      
+      //Serial.print(", Date (D/M/Y) = ");
+      //Serial.print(tm.Day);
+      //Serial.write('/');
+      //Serial.print(tm.Month);
+      //Serial.write('/');
+      //Serial.print(tmYearToCalendar(tm.Year));
+      //Serial.println();
 
-          digitalWrite(waterPumpPin,LOW);
-          digitalWrite(wateringLED,HIGH);
-          delay(event.Dlugosc * 100);
+      for (int i = 0; i < eventCount; i++) {
 
-          digitalWrite(waterPumpPin,HIGH);
-          digitalWrite(wateringLED,LOW);
-
-          //Serial.println("Podlane");
+        plannedEvent event = schedule[i]; // term->event; term->schedule
+        //Serial.println(weekday(makeTime(tm)));
+        //Serial.print(i + 1);
+        //.println();
+        if (wDayNow == event.WeekDay){ // weekdaycalc-> wDayNow 
           
-          delay(1000);
+          //Serial.println("Week Day OK");
+          //Serial.print(event.Hour);
+          //Serial.write(':');
+          //Serial.print(event.Min);
+          //Serial.write(':');
+          //Serial.print(event.Sec);
+          //Serial.println("");
+          
+      // Watering
+          if(hourNow == event.Hour && minuteNow == event.Min && secondNow == event.Sec){ // tm.Hour -> hourNow; tm.Minute -> minuteNow; tm.Second -> secondNow
+            //Serial.println("Time OK. Podlewamy!");
+            //Serial.println(event.Dlugosc);
+  
+            digitalWrite(waterPumpPin,LOW);
+            digitalWrite(wateringLED,HIGH);
+            delay(event.Dlugosc * 100);
+  
+            digitalWrite(waterPumpPin,HIGH);
+            digitalWrite(wateringLED,LOW);
+  
+            //Serial.println("Podlane");
+
+            delay(1000);
+          }
         }
       }
- 
-    }
 
-    if (secondNow == 30){
-		ledBlink(wateringLED, 5, 100);
-      
-    }
-    checkTimeFlag=0;
-        
-  } else {
-	// In case of disconnection of RTC or RTC has a malfunction
-    if (RTC.chipPresent()) {
-      //Serial.println("The DS3231 is stopped.  Please run the SetTime");
-      //Serial.println("example to initialize the time and begin running.");
-      //Serial.println();
-	  ledBlink(wateringLED, 2, 250);
-      
+      if (secondNow == 30){
+      ledBlink(wateringLED, 5, 100);
+
+      }
+      checkTimeFlag=0;
+
     } else {
-      //Serial.println("DS3231 read error!  Please check the circuitry.");
-      //Serial.println();
-	  ledBlink(wateringLED, 2, 250);
-    }
-	
-    delay(9000);
-  }
-}
+    // In case of disconnection of RTC or RTC has a malfunction
+      if (yearNow < 50) {
+        //Serial.println("The DS3231 is stopped.  Please run the SetTime");
+        //Serial.println("example to initialize the time and begin running.");
+        //Serial.println();
+      ledBlink(wateringLED, 2, 250);
 
-  /*
-  lcd.clear();
-  lcd.print("Leje wode");
-  digitalWrite(waterPumpPin, LOW);
-  delay(3000);
-  lcd.clear();
-  lcd.print("Nie leje wody");
-  digitalWrite(waterPumpPin, HIGH);
-  delay(3000);
-  lcd.clear();
-  */
-}
+      } else {
+        //Serial.println("DS3231 read error!  Please check the circuitry.");
+        //Serial.println();
+      ledBlink(wateringLED, 2, 250);
+      }
+
+      delay(9000);
+    }
+  }
+
+    /*
+    lcd.clear();
+    lcd.print("Leje wode");
+    digitalWrite(waterPumpPin, LOW);
+    delay(3000);
+    lcd.clear();
+    lcd.print("Nie leje wody");
+    digitalWrite(waterPumpPin, HIGH);
+    delay(3000);
+    lcd.clear();
+    */
+  }
 
 void ledBlink(int pinLED, int blinkCount, int intervalTime) {
-  
-	for (int i; i < blinkCount; i++) {
-		digitalWrite(pinLED, HIGH);
-		delay(intervalTime);
-		digitalWrite(pinLED, LOW);
-		delay(intervalTime);
-	}
+
+  for (int i; i < blinkCount; i++) {
+    digitalWrite(pinLED, HIGH);
+    delay(intervalTime);
+    digitalWrite(pinLED, LOW);
+    delay(intervalTime);
+  }
 }
 
 void print2digits(int number) {
