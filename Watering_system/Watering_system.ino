@@ -4,6 +4,7 @@
 *  
 *  TO DO LATER
 *   water level indicator / water pump power cutoff -> low water level signal !!!
+*   turn on LCD and display all data when button is clicked
 *   save logs to SD card
 *   connect via WiFi
 *   V_limits_ok == false && buttonFlag && waterNow -> use buzzer
