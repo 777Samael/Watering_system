@@ -46,7 +46,7 @@ plannedEvent::plannedEvent(const char* value)
   sscanf(value, "%d %d %d %d %d", &WeekDay, &Hour, &Min, &Sec, &Dlugosc);
 }
 //Length -> 10 is the seconds
-// 1 to sunday
+// 1 is Sunday
 plannedEvent schedule[]={
   plannedEvent("1 08 00 00 32"),
   plannedEvent("1 23 36 00 32"),
@@ -78,14 +78,14 @@ int waterPumpPin  = 8;  // Water pump relay pin (pinDigit)
 int solarPanelPin = 9;  // Solar charger relay pin
 
 // Variables for custom watering using button
-volatile int buttonFlag     = 0;
-volatile bool waterNow      = false;
-volatile int checkTimeFlag  = 0;
+volatile int buttonFlag     = 0;      // button clicked indicator
+volatile bool waterNow      = false;  // water pump activation indicator
+volatile int checkTimeFlag  = 0;      // flag for time interval interruptions
 
 // Solar charging
-bool Charge_run = false;
-float Charge_limit_low  = 10.0;
-float Charge_limit_high = 12.5;
+bool Charge_run = false;          // solar charging indicator
+float Charge_limit_low  = 10.0;   // voltage value to start charging
+float Charge_limit_high = 12.5;   // voltage value to stop charging
 
 // Variables for 18650 voltage calculations
 float A0_input_volt = 0.0;
