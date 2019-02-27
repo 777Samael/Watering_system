@@ -106,7 +106,7 @@ float A2_r2 = 1000.0;
 
 float A0_correction = 105.9;
 float A1_correction = 105.8;
-float A2_correction = 106.0;
+float A2_correction = 106.7;
 
 int A0_value = 0;
 int A1_value = 0;
@@ -297,28 +297,28 @@ void loop() {
     lcd.clear();
     lcd.setCursor(0,0);
     lcd.print("Voltage OK");
-    // Serial.println("Voltage OK");
+     Serial.println("Voltage OK");
     
     lcd.setCursor(0,1);
     lcd.print("A0= ");
     lcd.print(A0_input_volt);
-    // Serial.print("A0= ");
-    // Serial.println(A0_input_volt);
-    // delay(2000);
+     Serial.print("A0= ");
+     Serial.println(A0_input_volt);
+     delay(2000);
 
     lcd.setCursor(0,1);
     lcd.print("A1= ");
     lcd.print(A1_input_volt);
-    // Serial.print("A1= ");
-    // Serial.println(A1_input_volt);
-    // delay(2000);
+     Serial.print("A1= ");
+     Serial.println(A1_input_volt);
+     delay(2000);
 
     lcd.setCursor(0,1);
     lcd.print("A2= ");
     lcd.print(A2_input_volt);
-    // Serial.print("A2= ");
-    // Serial.println(A2_input_volt);
-    // delay(2000);
+     Serial.print("A2= ");
+     Serial.println(A2_input_volt);
+     delay(2000);
   }
 
   // Checking if the voltage value on the 18650 packet is too low or too high
