@@ -1,6 +1,7 @@
 /*
 *  TO DO NOW
 *   dodać lcd.print do testów / na stałe
+*   read time error on different pin?
 *  
 *  TO DO LATER
 *   water level indicator / water pump power cutoff -> low water level signal !!!
@@ -68,11 +69,11 @@ int eventCount = 14;
 
 // I/O pins
 int buttonPin       = 2;  // On/Off pin for custom watering
-int voltageDiffLED  = 3;  // LED pin for voltage differences alarm
-int lowVoltageLED   = 4;  // LED pin for low voltage alarm
-int highVoltageLED  = 5;  // LED pin for high voltage alarm
-int chargingLED     = 6;  // LED pin for charging indicator
-int wateringLED     = 7;  // watering is ON, read time error (pinLED)
+int voltageDiffLED  = 3;  // LED pin for voltage differences alarm - ORANGE / RED
+int lowVoltageLED   = 4;  // LED pin for low voltage alarm - RED
+int highVoltageLED  = 5;  // LED pin for high voltage alarm - RED
+int chargingLED     = 6;  // LED pin for charging indicator - BLUE
+int wateringLED     = 7;  // watering is ON, read time error (pinLED) - GREEN
 
 int waterPumpPin  = 8;  // Water pump relay pin (pinDigit)
 int solarPanelPin = 9;  // Solar charger relay pin
