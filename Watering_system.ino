@@ -33,7 +33,7 @@ bool PM = false;
 
 // LCD with I2C module
 LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);
-string lastWatering;
+//string lastWatering;
 
 class plannedEvent{
   public:
@@ -87,8 +87,10 @@ volatile bool waterNow        = false;  // water pump activation indicator
 volatile int checkTimeFlag    = 0;      // flag for time interval interruptions
 
 // Variables for displaying data using the button
-volotile int dispButtonFlag   = 0;      // display button clicked indicator
+volatile int dispButtonFlag   = 0;      // display button clicked indicator
 volatile bool displayrNow     = false;  // display activation indicator
+String dateWaterLCD;
+String timeWaterLCD;
 
 // Solar charging
 bool Charge_run = false;          // solar charging indicator
@@ -167,13 +169,15 @@ void loop() {
 
 // Time reading from RTC
   //DateTime tNow = RTC.now();
-  int yearNow     = RTC.getYear();
-  int monthNow    = RTC.getMonth(Century);
-  int dayNow      = RTC.getDate();
-  int wDayNow     = RTC.getDoW();
-  int hourNow     = RTC.getHour(h12, PM);
-  int minuteNow   = RTC.getMinute();
-  int secondNow   = RTC.getSecond();
+  int yearNow       = RTC.getYear();
+  int monthNow      = RTC.getMonth(Century);
+  int dayNow        = RTC.getDate();
+  int wDayNow       = RTC.getDoW();
+  int hourNow       = RTC.getHour(h12, PM);
+  int minuteNow     = RTC.getMinute();
+  int secondNow     = RTC.getSecond();
+  String dateNowLCD = "Date: 20" + String(yearNow) + "/" + get2digits(monthNow) + "/" + get2digits(dayNow);
+  String timeNowLCD = "Time: " + get2digits(hourNow) + ":" + get2digits(minuteNow) + ":" + get2digits(secondNow);
   
   // add variable for last watering datetime
   float A0A1_dif  = 0.0;
@@ -488,6 +492,9 @@ void loop() {
   
             digitalWrite(waterPumpPin,HIGH);
             digitalWrite(wateringLED,LOW);
+
+            dateWaterLCD = "Date: 20" + String(yearNow) + "/" + get2digits(monthNow) + "/" + get2digits(dayNow);
+            timeWaterLCD = "Time: " + get2digits(hourNow) + ":" + get2digits(minuteNow) + ":" + get2digits(secondNow);
   
             // Serial.println("Watering finished.");
 
@@ -515,45 +522,145 @@ void loop() {
   }
   
   if (dispButtonPin == LOW) {
-	  
-	// Display all data
-	lcd.clear();
+ 
+  // Display all data
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("Watering system");
+  lcd.setCursor(0,1);
+  lcd.print("Hello :)");
+  delay(3000);
+
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("Current DateTime");
+  delay(2000);
+  
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print(dateNowLCD);
+  lcd.setCursor(0,1);
+  lcd.print(timeNowLCD);
+  delay(3000);
+
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("Watering system");
+  lcd.setCursor(0,1);
+  lcd.print("Hello :)");
+  delay(3000);
+
+  // Voltage values
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("Voltage values");
+
+  lcd.setCursor(0,1);
+  lcd.print("A0 = ");
+  lcd.println(A0_input_volt);
+  delay(2000);
+
+  lcd.setCursor(0,1);
+  lcd.print("A1 = ");
+  lcd.println(A1_input_volt);
+  delay(2000);
+
+  lcd.setCursor(0,1);
+  lcd.print("A2 = ");
+  lcd.println(A2_input_volt);
+  delay(3000);
+  
+  // Voltage errors
+  if (V_diff_ok && V_limits_ok) {
+    
+    lcd.clear();
     lcd.setCursor(0,0);
-	lcd.print("Hello :)");
-	lcd.setCursor(0,1);
-	lcd.print("Watering system");
-	
-	// Date and time
-	lcd.clear();
+    lcd.print("No voltage errs");
+    delay(2000);
+  } else {
+    
+    lcd.clear();
     lcd.setCursor(0,0);
-	lcd.print("Date and time");
-	lcd.print("yearNow = ");
-    lcd.println(yearNow);
-    lcd.print("monthNow = ");
-    lcd.println(monthNow);
-    lcd.print("dayNow = ");
-    lcd.println(dayNow);
-    lcd.print("wDayNow = ");
-    lcd.println(wDayNow);
-    lcd.print("hourNow = ");
-    lcd.println(hourNow);
-    lcd.print("minuteNow = ");
-    lcd.println(minuteNow);
-    lcd.print("secondNow = ");
-    lcd.println(secondNow);
-    lcd.print("A0A1_dif = ");
-    lcd.println(A0A1_dif);
-    lcd.print("A1A2_dif = ");
-    lcd.println(A1A2_dif);
-    lcd.print("A2A0_dif = ");
-    lcd.println(A2A0_dif);
-	// Voltage values
-	
-	// Voltage errors
-	
-	// Charging status
-	
-	// Last watering datetime
+    lcd.print("Voltage errors");
+    delay(2000);
+
+    if (V_diff_ok == false) {
+
+      lcd.clear();
+      lcd.setCursor(0,0);
+      lcd.print("Voltage diff");
+      delay(2000);
+  
+      lcd.setCursor(0,1);
+      lcd.print("A0A1_dif = ");
+      lcd.println(A0A1_dif);
+      delay(2000);
+    
+      lcd.setCursor(0,1);
+      lcd.print("A1A2_dif = ");
+      lcd.println(A1A2_dif);
+      delay(2000);
+    
+      lcd.setCursor(0,1);
+      lcd.print("A2A0_dif = ");
+      lcd.println(A2A0_dif);
+      delay(3000);
+    }
+
+    if (V_limits_ok == false) {
+      
+      if (V_total < V_total_min) {
+
+        lcd.clear();
+        lcd.setCursor(0,0);
+        lcd.print("Too low voltage");
+    
+        lcd.setCursor(0,1);
+        lcd.print("V_min = ");
+        lcd.print(V_total_min);
+        delay(2000);
+    
+        lcd.setCursor(0,1);
+        lcd.print("V_total = ");
+        lcd.print(V_total);
+        delay(3000);
+      }
+
+      if (V_total > V_total_max) {
+
+        lcd.clear();
+        lcd.setCursor(0,0);
+        lcd.print("Too high voltage");
+        
+        lcd.setCursor(0,1);
+        lcd.print("V_max = ");
+        lcd.print(V_total_max);
+        delay(2000);
+    
+        lcd.setCursor(0,1);
+        lcd.print("V_total = ");
+        lcd.print(V_total);
+        delay(3000);
+      }
+    }
+  }
+
+  // Charging status
+  
+  // Last watering datetime
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("Last watering");
+  lcd.setCursor(0,1);
+  lcd.print("Date and Time");
+  delay(2000);
+  
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print(dateWaterLCD);
+  lcd.setCursor(0,1);
+  lcd.print(timeWaterLCD);
+  delay(3000);
   }
 }
 
@@ -573,6 +680,16 @@ void ledBlink(int pinLED, int blinkCount, int intervalTime) {
   }
   Serial.print(number);
 }*/
+
+String get2digits(int number) {
+  String str;
+	if (number >= 0 && number < 10) {
+		str = "0" + String(number);
+	} else {
+    str = String(number);
+	}
+	return str;
+}
 
 void buttonClicked(){
   if(digitalRead(waterButtonPin)== LOW){
