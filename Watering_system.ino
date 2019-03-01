@@ -2,6 +2,7 @@
 *  TO DO NOW
 *   dodać lcd.print do testów / na stałe
 *   read time error on different pin?
+*   add variable for last watering datetime
 *  
 *  TO DO LATER
 *   water level indicator / water pump power cutoff -> low water level signal !!!
@@ -32,6 +33,7 @@ bool PM = false;
 
 // LCD with I2C module
 LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);
+string lastWatering;
 
 class plannedEvent{
   public:
@@ -172,6 +174,8 @@ void loop() {
   int hourNow     = RTC.getHour(h12, PM);
   int minuteNow   = RTC.getMinute();
   int secondNow   = RTC.getSecond();
+  
+  // add variable for last watering datetime
   float A0A1_dif  = 0.0;
   float A1A2_dif  = 0.0;
   float A2A0_dif  = 0.0;
@@ -441,7 +445,7 @@ void loop() {
   }
 
   // Starting the water pump
-  if(waterButtonFlag && waterNow && V_limits_ok){
+  if (waterButtonFlag && waterNow && V_limits_ok){
     
     delay(250);
     digitalWrite(waterPumpPin,LOW);
@@ -449,14 +453,14 @@ void loop() {
     // Serial.println("The button is pressed, the water pump is working.");
   }
 
-  if(waterButtonFlag == 0 && waterNow){
+  if (waterButtonFlag == 0 && waterNow){
     
     digitalWrite(waterPumpPin,HIGH);
     digitalWrite(wateringLED,LOW);
     // Serial.println("The button has been released, the water pump stopped working.");
   }
 
-  if(waterButtonFlag == 0 && checkTimeFlag){
+  if (waterButtonFlag == 0 && checkTimeFlag){
     
     // Serial.println("Inside: if(waterButtonFlag == 0 && checkTimeFlag)");
     
@@ -474,7 +478,7 @@ void loop() {
           // Serial.println("Weekday matches the schedule element.");
           
       // Watering
-          if(hourNow == event.Hour && minuteNow == event.Min /*&& secondNow == event.Sec*/){
+          if (hourNow == event.Hour && minuteNow == event.Min /*&& secondNow == event.Sec*/){
 
             // Serial.println("Hour and minute matches the schedule element. Watering...");
   
@@ -494,7 +498,7 @@ void loop() {
 
       if (secondNow == 30){ // Just checking if system is working.
 
-        ledBlink(wateringLED, 5, 100);
+        ledBlink(wateringLED, 5, 250);
       }
 
       checkTimeFlag=0;
@@ -508,6 +512,48 @@ void loop() {
 
       delay(9000);
     }
+  }
+  
+  if (dispButtonPin == LOW) {
+	  
+	// Display all data
+	lcd.clear();
+    lcd.setCursor(0,0);
+	lcd.print("Hello :)");
+	lcd.setCursor(0,1);
+	lcd.print("Watering system");
+	
+	// Date and time
+	lcd.clear();
+    lcd.setCursor(0,0);
+	lcd.print("Date and time");
+	lcd.print("yearNow = ");
+    lcd.println(yearNow);
+    lcd.print("monthNow = ");
+    lcd.println(monthNow);
+    lcd.print("dayNow = ");
+    lcd.println(dayNow);
+    lcd.print("wDayNow = ");
+    lcd.println(wDayNow);
+    lcd.print("hourNow = ");
+    lcd.println(hourNow);
+    lcd.print("minuteNow = ");
+    lcd.println(minuteNow);
+    lcd.print("secondNow = ");
+    lcd.println(secondNow);
+    lcd.print("A0A1_dif = ");
+    lcd.println(A0A1_dif);
+    lcd.print("A1A2_dif = ");
+    lcd.println(A1A2_dif);
+    lcd.print("A2A0_dif = ");
+    lcd.println(A2A0_dif);
+	// Voltage values
+	
+	// Voltage errors
+	
+	// Charging status
+	
+	// Last watering datetime
   }
 }
 
