@@ -8,7 +8,7 @@
 *   turn on LCD and display all data when button is clicked
 *   save logs to SD card
 *   connect via WiFi
-*   V_limits_ok == false && buttonFlag && waterNow -> use buzzer
+*   V_limits_ok == false && waterButtonFlag && waterNow -> use buzzer
 *   other uses of buzzer
 *   describe all variables
 *   
@@ -26,9 +26,9 @@
 // Real Time Clock DS3231
 //RTClib RTC;
 DS3231 RTC;
-bool Century=false;
-bool h12;
-bool PM;
+bool Century = false;
+bool h12 = false;
+bool PM = false;
 
 // LCD with I2C module
 LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);
@@ -68,20 +68,25 @@ plannedEvent schedule[]={
 int eventCount = 14;
 
 // I/O pins
-int buttonPin       = 2;  // On/Off pin for custom watering
-int voltageDiffLED  = 3;  // LED pin for voltage differences alarm - ORANGE / RED
-int lowVoltageLED   = 4;  // LED pin for low voltage alarm - RED
-int highVoltageLED  = 5;  // LED pin for high voltage alarm - RED
-int chargingLED     = 6;  // LED pin for charging indicator - BLUE
-int wateringLED     = 7;  // watering is ON, read time error (pinLED) - GREEN
+int waterButtonPin  = 2;  // On/Off pin for custom watering
+int dispButtonPin   = 3;  // Turn on LCD and display all the necessary data
+int voltageDiffLED  = 4;  // LED pin for voltage differences alarm - ORANGE / RED
+int lowVoltageLED   = 5;  // LED pin for low voltage alarm - RED
+int highVoltageLED  = 6;  // LED pin for high voltage alarm - RED
+int timeErrorLED    = 7;  // LED pin for read time error - RED
+int chargingLED     = 8;  // LED pin for charging indicator - BLUE
+int wateringLED     = 9;  // watering is ON, - GREEN
+int waterPumpPin    = 10;  // Water pump relay pin (pinDigit)
+int solarPanelPin   = 11;  // Solar charger relay pin
 
-int waterPumpPin  = 8;  // Water pump relay pin (pinDigit)
-int solarPanelPin = 9;  // Solar charger relay pin
+// Variables for custom watering using the buttons
+volatile int waterButtonFlag  = 0;      // watering button clicked indicator
+volatile bool waterNow        = false;  // water pump activation indicator
+volatile int checkTimeFlag    = 0;      // flag for time interval interruptions
 
-// Variables for custom watering using button
-volatile int buttonFlag     = 0;      // button clicked indicator
-volatile bool waterNow      = false;  // water pump activation indicator
-volatile int checkTimeFlag  = 0;      // flag for time interval interruptions
+// Variables for displaying data using the button
+volotile int dispButtonFlag   = 0;      // display button clicked indicator
+volatile bool displayrNow     = false;  // display activation indicator
 
 // Solar charging
 bool Charge_run = false;          // solar charging indicator
@@ -123,14 +128,18 @@ void setup() {
   Serial.begin(9600); // Start the serial interface
   lcd.begin(16,2);    // Init the LCD 2x16
   lcd.backlight();    // turn of backlight
-  //lcd.autoscroll(); // turn on autoscroll
+  //lcd.autoscroll(); // turn on auto scroll
 
 // Setting up pins
 
   // Read watering button
-  pinMode(buttonPin, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(buttonPin),buttonClicked, CHANGE);
+  pinMode(waterButtonPin, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(waterButtonPin),buttonClicked, CHANGE);
   pinMode(wateringLED,OUTPUT);
+  
+  // Read display on/off button
+  pinMode(dispButtonPin, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(dispButtonPin),buttonClicked, CHANGE);
 
   // LEDs
   pinMode(voltageDiffLED,OUTPUT); // LED pin for voltage differences alarm
@@ -432,7 +441,7 @@ void loop() {
   }
 
   // Starting the water pump
-  if(buttonFlag && waterNow && V_limits_ok){
+  if(waterButtonFlag && waterNow && V_limits_ok){
     
     delay(250);
     digitalWrite(waterPumpPin,LOW);
@@ -440,16 +449,16 @@ void loop() {
     // Serial.println("The button is pressed, the water pump is working.");
   }
 
-  if(buttonFlag == 0 && waterNow){
+  if(waterButtonFlag == 0 && waterNow){
     
     digitalWrite(waterPumpPin,HIGH);
     digitalWrite(wateringLED,LOW);
     // Serial.println("The button has been released, the water pump stopped working.");
   }
 
-  if(buttonFlag == 0 && checkTimeFlag){
+  if(waterButtonFlag == 0 && checkTimeFlag){
     
-    // Serial.println("Inside: if(buttonFlag == 0 && checkTimeFlag)");
+    // Serial.println("Inside: if(waterButtonFlag == 0 && checkTimeFlag)");
     
     if (yearNow < 50) {   // Check if read datetime is not 1/1/1960
       
@@ -520,11 +529,11 @@ void ledBlink(int pinLED, int blinkCount, int intervalTime) {
 }*/
 
 void buttonClicked(){
-  if(digitalRead(buttonPin)== LOW){
-    buttonFlag = 1;
+  if(digitalRead(waterButtonPin)== LOW){
+    waterButtonFlag = 1;
   }
   else{
-    buttonFlag = 0;
+    waterButtonFlag = 0;
   }
   waterNow= true;
 }
