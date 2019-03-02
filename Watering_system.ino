@@ -1,16 +1,13 @@
 /*
 *  TO DO NOW
-*   dodać lcd.print do testów / na stałe - turn off lcd on start adn turn on when button clicked
-*   dodać zmienną timeReadOk do pętkli i lcd
-*  
+*   describe all variables
+*   
 *  TO DO LATER
 *   water level indicator / water pump power cutoff -> low water level signal !!!
-*   turn on LCD and display all data when button is clicked
 *   save logs to SD card
 *   connect via WiFi
 *   V_limits_ok == false && waterButtonFlag && waterNow -> use buzzer
 *   other uses of buzzer
-*   describe all variables
 *   
 *   DONE
 *   sprawdzić wydajność pompki, czy na pewno 45.5 ml / sek
@@ -18,6 +15,8 @@
 *   dodać Serial.print do testów
 *   read time error on different pin?
 *   add variable for last watering datetime
+*   turn on LCD and display all data when button is clicked
+*   dodać lcd.print do testów / na stałe - turn off lcd on start adn turn on when button clicked
 */
 
 #include <Wire.h>
@@ -92,7 +91,6 @@ volatile int dispButtonFlag   = 0;      // display button clicked indicator
 volatile bool displayrNow     = false;  // display activation indicator
 String dateWaterLCD;
 String timeWaterLCD;
-bool timeReadOk = true;
 
 // Solar charging
 bool Charge_run = false;          // solar charging indicator
@@ -100,32 +98,23 @@ float Charge_limit_low  = 10.0;   // voltage value to start charging
 float Charge_limit_high = 12.5;   // voltage value to stop charging
 
 // Variables for 18650 voltage calculations
-float A0_input_volt = 0.0;
-float A1_input_volt = 0.0;
-float A2_input_volt = 0.0;
-float V_total       = 0.0;
-float V_total_min   = 9.0;
-float V_total_max   = 12.8;
+float A0_input_volt = 0.0;  // calculated input voltage on cell 1
+float A1_input_volt = 0.0;  // calculated input voltage on cell 2
+float A2_input_volt = 0.0;  // calculated input voltage on cell 3
+float V_total       = 0.0;  // sum of valtages on all cells
+float V_total_min   = 9.0;  // minimal safe voltage value
+float V_total_max   = 12.8; // maximal safe coltage value
 
-float A1_temp = 0.0;
-float A2_temp = 0.0;
+float A0_correction = 105.9;  // voltage read correction on cell 1
+float A1_correction = 105.8;  // voltage read correction on cell 2
+float A2_correction = 106.7;  // voltage read correction on cell 3
 
-float A1_r1 = 1000.0;
-float A1_r2 = 1000.0;
+int A0_value = 0; // raw analog input value from cell 1
+int A1_value = 0; // raw analog input value from cell 2
+int A2_value = 0; // raw analog input value from cell 3
 
-float A2_r1 = 2000.0;
-float A2_r2 = 1000.0;
-
-float A0_correction = 105.9;
-float A1_correction = 105.8;
-float A2_correction = 106.7;
-
-int A0_value = 0;
-int A1_value = 0;
-int A2_value = 0;
-
-bool V_diff_ok    = true;
-bool V_limits_ok  = true;
+bool V_diff_ok    = true; // voltage difference between cells
+bool V_limits_ok  = true; // voltage limits for whole battery pack
 
 void setup() {
 
@@ -133,7 +122,7 @@ void setup() {
   Wire.begin();       // Start the I2C interface
   Serial.begin(9600); // Start the serial interface
   lcd.begin(16,2);    // Init the LCD 2x16
-  lcd.backlight();    // turn of backlight
+  //lcd.backlight();    // turn of backlight
   //lcd.autoscroll(); // turn on auto scroll
 
 // Setting up pins
@@ -145,7 +134,6 @@ void setup() {
   
   // Read display on/off button
   pinMode(dispButtonPin, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(dispButtonPin),buttonClicked, CHANGE);
 
   // LEDs
   pinMode(voltageDiffLED,OUTPUT); // LED pin for voltage differences alarm
@@ -163,7 +151,7 @@ void setup() {
   pinMode(solarPanelPin,OUTPUT);
   digitalWrite(solarPanelPin, HIGH);
   
-  // Initialize interruptions?
+  // Initialize interruptions
   Timer1.initialize(1000000);
   Timer1.attachInterrupt(ReadTimeNow);
 }
@@ -172,20 +160,21 @@ void loop() {
 
 // Time reading from RTC
   //DateTime tNow = RTC.now();
-  int yearNow       = RTC.getYear();
-  int monthNow      = RTC.getMonth(Century);
-  int dayNow        = RTC.getDate();
-  int wDayNow       = RTC.getDoW();
-  int hourNow       = RTC.getHour(h12, PM);
-  int minuteNow     = RTC.getMinute();
-  int secondNow     = RTC.getSecond();
-  
+  int yearNow       = RTC.getYear();          // current year from real time clock
+  int monthNow      = RTC.getMonth(Century);  // current month from real time clock
+  int dayNow        = RTC.getDate();          // current day from real time clock
+  int wDayNow       = RTC.getDoW();           // current weekday from real time clock (1 = SUNDAY)
+  int hourNow       = RTC.getHour(h12, PM);   // current hour from real time clock
+  int minuteNow     = RTC.getMinute();        // current minute from real time clock
+  int secondNow     = RTC.getSecond();        // current second from real time clock
+
+  // Current date and time to display on lcd
   String dateNowLCD = "Date: 20" + String(yearNow) + "/" + get2digits(monthNow) + "/" + get2digits(dayNow);
   String timeNowLCD = "Time: " + get2digits(hourNow) + ":" + get2digits(minuteNow) + ":" + get2digits(secondNow);
   
-  float A0A1_dif  = 0.0;
-  float A1A2_dif  = 0.0;
-  float A2A0_dif  = 0.0;
+  float A0A1_dif  = 0.0; // voltage difference between cell 1 and 2
+  float A1A2_dif  = 0.0; // voltage difference between cell 2 and 3
+  float A2A0_dif  = 0.0; // voltage difference between cell 3 and 1
 
   /*Serial.print("yearNow = ");
   Serial.println(yearNow);
@@ -452,10 +441,15 @@ void loop() {
       delay(9000);
     }
   }
-  
+
+// Turn on lcd and display all data
+
   if (dispButtonPin == LOW) {
- 
-  // Display all data
+
+  lcd.backlight();
+  lcd.display();
+  
+  // Display basic data
   lcd.clear();
   lcd.setCursor(0,0);
   lcd.print("Watering system");
@@ -607,6 +601,10 @@ void loop() {
   lcd.setCursor(0,1);
   lcd.print(timeWaterLCD);
   delay(3000);
+
+  lcd.clear();
+  lcd.noBacklight();
+  lcd.noDisplay();
   }
 }
 
