@@ -1,8 +1,7 @@
 /*
 *  TO DO NOW
-*   dodać lcd.print do testów / na stałe
-*   read time error on different pin?
-*   add variable for last watering datetime
+*   dodać lcd.print do testów / na stałe - turn off lcd on start adn turn on when button clicked
+*   dodać zmienną timeReadOk do pętkli i lcd
 *  
 *  TO DO LATER
 *   water level indicator / water pump power cutoff -> low water level signal !!!
@@ -17,6 +16,8 @@
 *   sprawdzić wydajność pompki, czy na pewno 45.5 ml / sek
 *   Wydajność 47 sek > 2L - 42,5 ml sek
 *   dodać Serial.print do testów
+*   read time error on different pin?
+*   add variable for last watering datetime
 */
 
 #include <Wire.h>
@@ -72,13 +73,13 @@ int eventCount = 14;
 // I/O pins
 int waterButtonPin  = 2;  // On/Off pin for custom watering
 int dispButtonPin   = 3;  // Turn on LCD and display all the necessary data
-int voltageDiffLED  = 4;  // LED pin for voltage differences alarm - ORANGE / RED
+int voltageDiffLED  = 4;  // LED pin for voltage differences alarm - YELLOW
 int lowVoltageLED   = 5;  // LED pin for low voltage alarm - RED
 int highVoltageLED  = 6;  // LED pin for high voltage alarm - RED
 int timeErrorLED    = 7;  // LED pin for read time error - RED
 int chargingLED     = 8;  // LED pin for charging indicator - BLUE
 int wateringLED     = 9;  // watering is ON, - GREEN
-int waterPumpPin    = 10;  // Water pump relay pin (pinDigit)
+int waterPumpPin    = 10;  // Water pump relay pin
 int solarPanelPin   = 11;  // Solar charger relay pin
 
 // Variables for custom watering using the buttons
@@ -91,6 +92,7 @@ volatile int dispButtonFlag   = 0;      // display button clicked indicator
 volatile bool displayrNow     = false;  // display activation indicator
 String dateWaterLCD;
 String timeWaterLCD;
+bool timeReadOk = true;
 
 // Solar charging
 bool Charge_run = false;          // solar charging indicator
@@ -149,6 +151,7 @@ void setup() {
   pinMode(voltageDiffLED,OUTPUT); // LED pin for voltage differences alarm
   pinMode(lowVoltageLED,OUTPUT);  // LED pin for low voltage
   pinMode(highVoltageLED,OUTPUT); // LED pin for high voltage
+  pinMode(timeErrorLED,OUTPUT); // LED pin for read time error
   pinMode(chargingLED,OUTPUT);    // LED pin for charging indicator
   pinMode(wateringLED,OUTPUT);    // watering is ON, read time error (pinLED)
 
@@ -176,10 +179,10 @@ void loop() {
   int hourNow       = RTC.getHour(h12, PM);
   int minuteNow     = RTC.getMinute();
   int secondNow     = RTC.getSecond();
+  
   String dateNowLCD = "Date: 20" + String(yearNow) + "/" + get2digits(monthNow) + "/" + get2digits(dayNow);
   String timeNowLCD = "Time: " + get2digits(hourNow) + ":" + get2digits(minuteNow) + ":" + get2digits(secondNow);
   
-  // add variable for last watering datetime
   float A0A1_dif  = 0.0;
   float A1A2_dif  = 0.0;
   float A2A0_dif  = 0.0;
@@ -279,31 +282,14 @@ void loop() {
     digitalWrite(voltageDiffLED, HIGH);
 
     // Display error message
-    lcd.clear();
-    lcd.setCursor(0,0);
-    lcd.print("Invalid V diff");
-    // Serial.println("Invalid V diff");
-
-    lcd.setCursor(0,1);
-    lcd.print("A0= ");
-    lcd.print(A0_input_volt);
-    // Serial.print("A0= ");
-    // Serial.println(A0_input_volt);
-    // delay(2000);
-
-    lcd.setCursor(0,1);
-    lcd.print("A1= ");
-    lcd.print(A1_input_volt);
-    // Serial.print("A1= ");
-    // Serial.println(A1_input_volt);
-    // delay(2000);
-
-    lcd.setCursor(0,1);
-    lcd.print("A2= ");
-    lcd.print(A2_input_volt);
-    // Serial.print("A2= ");
-    // Serial.println(A2_input_volt);
-    // delay(2000);
+    /*Serial.println("Invalid V diff");
+    Serial.print("A0= ");
+    Serial.println(A0_input_volt);
+    Serial.print("A1= ");
+    Serial.println(A1_input_volt);
+    Serial.print("A2= ");
+    Serial.println(A2_input_volt);
+    delay(2000);*/
 
   } else {
 
@@ -312,31 +298,14 @@ void loop() {
     digitalWrite(voltageDiffLED, LOW);
     
     // Display info message
-    lcd.clear();
-    lcd.setCursor(0,0);
-    lcd.print("Voltage OK");
-     Serial.println("Voltage OK");
-    
-    lcd.setCursor(0,1);
-    lcd.print("A0= ");
-    lcd.print(A0_input_volt);
-     Serial.print("A0= ");
-     Serial.println(A0_input_volt);
-     delay(2000);
-
-    lcd.setCursor(0,1);
-    lcd.print("A1= ");
-    lcd.print(A1_input_volt);
-     Serial.print("A1= ");
-     Serial.println(A1_input_volt);
-     delay(2000);
-
-    lcd.setCursor(0,1);
-    lcd.print("A2= ");
-    lcd.print(A2_input_volt);
-     Serial.print("A2= ");
-     Serial.println(A2_input_volt);
-     delay(2000);
+    /*Serial.println("Voltage OK");
+    Serial.print("A0= ");
+    Serial.println(A0_input_volt);
+    Serial.print("A1= ");
+    Serial.println(A1_input_volt);
+    Serial.print("A2= ");
+    Serial.println(A2_input_volt);
+    delay(2000);*/
   }
 
   // Checking if the voltage value on the 18650 packet is too low or too high
@@ -348,24 +317,12 @@ void loop() {
     digitalWrite(lowVoltageLED, HIGH);
     
     // Display error message
-    lcd.clear();
-    lcd.setCursor(0,0);
-    lcd.print("Too low voltage");
-    // Serial.println("Too low voltage");
-
-    lcd.setCursor(0,1);
-    lcd.print("V_min = ");
-    lcd.print(V_total_min);
-    // Serial.print("V_min = ");
-    // Serial.println(V_total_min);
-    // delay(2000);
-
-    lcd.setCursor(0,1);
-    lcd.print("V_total = ");
-    lcd.print(V_total);
-    // Serial.print("V_total = ");
-    // Serial.println(V_total);
-    // delay(2000);
+    /*Serial.println("Too low voltage");
+    Serial.print("V_min = ");
+    Serial.println(V_total_min);
+    Serial.print("V_total = ");
+    Serial.println(V_total);
+    delay(2000);*/
   }
 
   if (V_total > V_total_max) {
@@ -374,24 +331,12 @@ void loop() {
     digitalWrite(highVoltageLED, HIGH);
     
     // Display error message
-    lcd.clear();
-    lcd.setCursor(0,0);
-    lcd.print("Too high voltage");
-    // Serial.println("Too high voltage");
-    
-    lcd.setCursor(0,1);
-    lcd.print("V_max = ");
-    lcd.print(V_total_max);
-    // Serial.print("V_max = ");
-    // Serial.println(V_total_max);
-    // delay(2000);
-
-    lcd.setCursor(0,1);
-    lcd.print("V_total = ");
-    lcd.print(V_total);
-    // Serial.print("V_total = ");
-    // Serial.println(V_total);
-    // delay(2000);
+    /*Serial.println("Too high voltage");
+    Serial.print("V_max = ");
+    Serial.println(V_total_max);
+    Serial.print("V_total = ");
+    Serial.println(V_total);
+    delay(2000);*/
   }
 
   if (V_total > V_total_min && V_total < V_total_max) {
@@ -401,17 +346,10 @@ void loop() {
     digitalWrite(highVoltageLED, LOW);
     
     // Display info message
-    lcd.clear();
-    lcd.setCursor(0,0);
-    lcd.print("Voltage in range");
-    // Serial.println("Voltage in range.");
-    
-    lcd.setCursor(0,1);
-    lcd.print("V_total = ");
-    lcd.print(V_total);
-    // Serial.print("V_total = ");
-    // Serial.println(V_total);
-    // delay(2000);
+    /*Serial.println("Voltage in range.");
+    Serial.print("V_total = ");
+    Serial.println(V_total);
+    delay(2000);*/
   }
 
 // Decision about connecting solar cells
@@ -466,16 +404,15 @@ void loop() {
 
   if (waterButtonFlag == 0 && checkTimeFlag){
     
-    // Serial.println("Inside: if(waterButtonFlag == 0 && checkTimeFlag)");
-    
     if (yearNow < 50) {   // Check if read datetime is not 1/1/1960
-      
+
+      digitalWrite(timeErrorLED,LOW);
       //Serial.println("Read from RTC is OK");
 
       for (int i = 0; i < eventCount; i++) {
 
-        // Serial.println("Looping through event schedule.");
         plannedEvent event = schedule[i];
+        // Serial.println("Looping through event schedule.");
 
         if (wDayNow == event.WeekDay){
 
@@ -503,18 +440,13 @@ void loop() {
         }
       }
 
-      if (secondNow == 30){ // Just checking if system is working.
-
-        ledBlink(wateringLED, 5, 250);
-      }
-
       checkTimeFlag=0;
     } else {
 
-      if (!yearNow > 50) {  // In case of disconnection of RTC or RTC has a malfunction
-        
+      if (yearNow > 50) {  // In case of disconnection of RTC or RTC has a malfunction
+
+        digitalWrite(timeErrorLED,HIGH);
         // Serial.println("The DS3231 is stopped.  Please run the SetTime or check the circuitry.");
-        ledBlink(wateringLED, 3, 250);
       }
 
       delay(9000);
@@ -588,7 +520,7 @@ void loop() {
 
       lcd.clear();
       lcd.setCursor(0,0);
-      lcd.print("Voltage diff");
+      lcd.print("Invalid V diff");
       delay(2000);
   
       lcd.setCursor(0,1);
@@ -646,6 +578,20 @@ void loop() {
   }
 
   // Charging status
+  if (Charge_run) {
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("Battery charging");
+    lcd.setCursor(0,1);
+    lcd.print("In progress");
+    delay(3000);
+  } else {
+    lcd.setCursor(0,0);
+    lcd.print("Battery charging");
+    lcd.setCursor(0,1);
+    lcd.print("Stopped");
+    delay(3000);
+  }
   
   // Last watering datetime
   lcd.clear();
@@ -674,14 +620,7 @@ void ledBlink(int pinLED, int blinkCount, int intervalTime) {
   }
 }
 
-/*void print2digits(int number) {   // Nice to have
-  if (number >= 0 && number < 10) {
-    Serial.write('0');
-  }
-  Serial.print(number);
-}*/
-
-String get2digits(int number) {
+String get2digits(int number) { // return number lower that 10 as string with 0 as prefix
   String str;
 	if (number >= 0 && number < 10) {
 		str = "0" + String(number);
