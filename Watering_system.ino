@@ -1,6 +1,4 @@
-/*
-*  TO DO NOW
-*   describe all variables
+/* TO DO NOW
 *   
 *  TO DO LATER
 *   water level indicator / water pump power cutoff -> low water level signal !!!
@@ -9,7 +7,7 @@
 *   V_limits_ok == false && waterButtonFlag && waterNow -> use buzzer
 *   other uses of buzzer
 *   
-*   DONE
+*  DONE
 *   sprawdzić wydajność pompki, czy na pewno 45.5 ml / sek
 *   Wydajność 47 sek > 2L - 42,5 ml sek
 *   dodać Serial.print do testów
@@ -17,6 +15,7 @@
 *   add variable for last watering datetime
 *   turn on LCD and display all data when button is clicked
 *   dodać lcd.print do testów / na stałe - turn off lcd on start adn turn on when button clicked
+*   describe all variables
 */
 
 #include <Wire.h>
@@ -25,7 +24,6 @@
 #include <TimerOne.h>
 
 // Real Time Clock DS3231
-//RTClib RTC;
 DS3231 RTC;
 bool Century = false;
 bool h12 = false;
@@ -89,8 +87,10 @@ volatile int checkTimeFlag    = 0;      // flag for time interval interruptions
 // Variables for displaying data using the button
 volatile int dispButtonFlag   = 0;      // display button clicked indicator
 volatile bool displayrNow     = false;  // display activation indicator
-String dateWaterLCD;
-String timeWaterLCD;
+String dateWaterScheduleLCD;
+String timeWaterScheduleLCD;
+String dateWaterCustomLCD;
+String timeWaterCustomLCD;
 
 // Solar charging
 bool Charge_run = false;          // solar charging indicator
@@ -381,6 +381,8 @@ void loop() {
     delay(250);
     digitalWrite(waterPumpPin,LOW);
     digitalWrite(wateringLED,HIGH);
+    dateWaterCustomLCD = "Date: 20" + String(yearNow) + "/" + get2digits(monthNow) + "/" + get2digits(dayNow);
+    timeWaterCustomLCD = "Time: " + get2digits(hourNow) + ":" + get2digits(minuteNow) + ":" + get2digits(secondNow);
     // Serial.println("The button is pressed, the water pump is working.");
   }
 
@@ -419,8 +421,8 @@ void loop() {
             digitalWrite(waterPumpPin,HIGH);
             digitalWrite(wateringLED,LOW);
 
-            dateWaterLCD = "Date: 20" + String(yearNow) + "/" + get2digits(monthNow) + "/" + get2digits(dayNow);
-            timeWaterLCD = "Time: " + get2digits(hourNow) + ":" + get2digits(minuteNow) + ":" + get2digits(secondNow);
+            dateWaterScheduleLCD = "Date: 20" + String(yearNow) + "/" + get2digits(monthNow) + "/" + get2digits(dayNow);
+            timeWaterScheduleLCD = "Time: " + get2digits(hourNow) + ":" + get2digits(minuteNow) + ":" + get2digits(secondNow);
   
             // Serial.println("Watering finished.");
 
@@ -591,15 +593,34 @@ void loop() {
   lcd.clear();
   lcd.setCursor(0,0);
   lcd.print("Last watering");
+  delay(2000);
+
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("Custom");
   lcd.setCursor(0,1);
   lcd.print("Date and Time");
   delay(2000);
   
   lcd.clear();
   lcd.setCursor(0,0);
-  lcd.print(dateWaterLCD);
+  lcd.print(dateWaterCustomLCD);
   lcd.setCursor(0,1);
-  lcd.print(timeWaterLCD);
+  lcd.print(timeWaterCustomLCD);
+  delay(3000);
+  
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("Scheduled");
+  lcd.setCursor(0,1);
+  lcd.print("Date and Time");
+  delay(2000);
+  
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print(dateWaterScheduleLCD);
+  lcd.setCursor(0,1);
+  lcd.print(timeWaterScheduleLCD);
   delay(3000);
 
   lcd.clear();
