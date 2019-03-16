@@ -31,7 +31,6 @@ bool PM = false;
 
 // LCD with I2C module
 LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);
-//string lastWatering;
 
 class plannedEvent{
   public:
@@ -62,22 +61,22 @@ plannedEvent schedule[]={
   plannedEvent("6 08 00 00 32"),
   plannedEvent("6 20 00 00 32"),
   plannedEvent("7 08 00 00 32"),
-  plannedEvent("7 20 00 00 32"),
+  plannedEvent("7 20 00 00 32")
   };
 
 int eventCount = 14;
 
 // I/O pins
-int waterButtonPin  = 2;  // On/Off pin for custom watering
-int lcdButtonPin   = 3;  // Turn on LCD and display all the necessary data
-int voltageDiffLED  = 4;  // LED pin for voltage differences alarm - YELLOW
-int lowVoltageLED   = 5;  // LED pin for low voltage alarm - RED
-int highVoltageLED  = 6;  // LED pin for high voltage alarm - RED
-int timeErrorLED    = 7;  // LED pin for read time error - RED
-int chargingLED     = 8;  // LED pin for charging indicator - BLUE
-int wateringLED     = 9;  // watering is ON, - GREEN
-int waterPumpPin    = 10;  // Water pump relay pin
-int solarPanelPin   = 11;  // Solar charger relay pin
+int waterButtonPin  = 2;    // On/Off pin for custom watering
+int lcdButtonPin    = 3;    // Turn on LCD and display all the necessary data
+int voltageDiffLED  = 4;    // LED pin for voltage differences alarm - YELLOW
+int lowVoltageLED   = 5;    // LED pin for low voltage alarm - RED
+int highVoltageLED  = 6;    // LED pin for high voltage alarm - RED
+int timeErrorLED    = 7;    // LED pin for read time error - RED
+int wateringLED     = 8;    // watering is ON, - GREEN
+int chargingLED     = 9;    // LED pin for charging indicator - BLUE
+int waterPumpPin    = 10;   // Water pump relay pin
+int solarPanelPin   = 11;   // Solar charger relay pin
 
 // Variables for custom watering using the buttons
 volatile int waterButtonFlag  = 0;      // watering button clicked indicator
@@ -85,8 +84,9 @@ volatile bool waterNow        = false;  // water pump activation indicator
 volatile int checkTimeFlag    = 0;      // flag for time interval interruptions
 
 // Variables for displaying data using the button
-volatile int lcdButtonFlag   = 0;      // display button clicked indicator
-volatile bool displayNow     = false;  // display activation indicator
+//volatile int lcdButtonFlag   = 0;      // display button clicked indicator
+//volatile bool displayNow     = false;  // display activation indicator
+int lcdButtonFlag = 1;
 String dateWaterScheduleLCD;
 String timeWaterScheduleLCD;
 String dateWaterCustomLCD;
@@ -134,7 +134,7 @@ void setup() {
   
   // Read display on/off button
   pinMode(lcdButtonPin, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(lcdButtonFlag),lcdButtonClicked, CHANGE);
+  //attachInterrupt(digitalPinToInterrupt(lcdButtonFlag),lcdButtonClicked, CHANGE);
 
   // LEDs
   pinMode(voltageDiffLED,OUTPUT); // LED pin for voltage differences alarm
@@ -169,6 +169,9 @@ void loop() {
   int minuteNow     = RTC.getMinute();        // current minute from real time clock
   int secondNow     = RTC.getSecond();        // current second from real time clock
 
+  // LCD button read
+  lcdButtonFlag = digitalRead(lcdButtonPin);
+  
   // Current date and time to display on lcd
   String dateNowLCD = "Date: 20" + String(yearNow) + "/" + get2digits(monthNow) + "/" + get2digits(dayNow);
   String timeNowLCD = "Time: " + get2digits(hourNow) + ":" + get2digits(minuteNow) + ":" + get2digits(secondNow);
@@ -177,6 +180,7 @@ void loop() {
   float A1A2_dif  = 0.0; // voltage difference between cell 2 and 3
   float A2A0_dif  = 0.0; // voltage difference between cell 3 and 1
 
+  Serial.println("--------------------------------------------");
   Serial.print("yearNow = ");
   Serial.println(yearNow);
   Serial.print("monthNow = ");
@@ -197,7 +201,7 @@ void loop() {
   Serial.println(A1A2_dif);
   Serial.print("A2A0_dif = ");
   Serial.println(A2A0_dif);
-  delay(5000);
+  //delay(5000);
 
 // Checking the voltage on the cells
 
@@ -241,7 +245,7 @@ void loop() {
   Serial.println(A1_input_volt);
   Serial.print("A2_input_volt = ");
   Serial.println(A2_input_volt);
-  delay(5000);
+  //delay(5000);
 
 // Alarm handling at incorrect voltage values
 
@@ -256,14 +260,14 @@ void loop() {
   Serial.println(A1A2_dif);
   Serial.print("A2A0_dif = ");
   Serial.println(A2A0_dif);
-  delay(5000);
+  //delay(5000);
 
   // Całkowita wartość napięcia
   V_total = A0_input_volt + A1_input_volt + A2_input_volt;
 
   Serial.print("V_total = ");
   Serial.println(V_total);
-  delay(5000);
+  //delay(5000);
 
   if (A0A1_dif > 0.1 || A1A2_dif > 0.1 || A2A0_dif > 0.1) {
 
@@ -279,7 +283,7 @@ void loop() {
     Serial.println(A1_input_volt);
     Serial.print("A2= ");
     Serial.println(A2_input_volt);
-    delay(2000);
+    //delay(2000);
 
   } else {
 
@@ -295,7 +299,7 @@ void loop() {
     Serial.println(A1_input_volt);
     Serial.print("A2= ");
     Serial.println(A2_input_volt);
-    delay(2000);
+    //delay(2000);
   }
 
   // Checking if the voltage value on the 18650 packet is too low or too high
@@ -312,7 +316,7 @@ void loop() {
     Serial.println(V_total_min);
     Serial.print("V_total = ");
     Serial.println(V_total);
-    delay(2000);
+    //delay(2000);
   }
 
   if (V_total > V_total_max) {
@@ -326,7 +330,7 @@ void loop() {
     Serial.println(V_total_max);
     Serial.print("V_total = ");
     Serial.println(V_total);
-    delay(2000);
+    //delay(2000);
   }
 
   if (V_total > V_total_min && V_total < V_total_max) {
@@ -339,7 +343,7 @@ void loop() {
     Serial.println("Voltage in range.");
     Serial.print("V_total = ");
     Serial.println(V_total);
-    delay(2000);
+    //delay(2000);
   }
 
 // Decision about connecting solar cells
@@ -447,10 +451,23 @@ void loop() {
 
 // Turn on lcd and display all data
 
-  if (lcdButtonFlag && displayNow) {
+  Serial.print("waterButtonFlag = ");
+  Serial.println(waterButtonFlag);
+  Serial.print("waterNow = ");
+  Serial.println(waterNow);
+  
+  Serial.print("lcdButtonFlag = ");
+  Serial.println(lcdButtonFlag);
+  //Serial.print("displayNow = ");
+  //Serial.println(displayNow);
+  delay(5000);
+  //if (waterButtonFlag == 0 && waterNow){
+  //if (lcdButtonPin == LOW) {
+  if (lcdButtonFlag == LOW) {
 
   lcd.backlight();
   lcd.display();
+  Serial.println("Displaying on LCD...................");
   
   // Display basic data
   lcd.clear();
@@ -628,6 +645,7 @@ void loop() {
   lcd.noBacklight();
   lcd.noDisplay();
   }
+  delay(5000);
 }
 
 void ledBlink(int pinLED, int blinkCount, int intervalTime) {
@@ -642,12 +660,12 @@ void ledBlink(int pinLED, int blinkCount, int intervalTime) {
 
 String get2digits(int number) { // return number lower that 10 as string with 0 as prefix
   String str;
-	if (number >= 0 && number < 10) {
-		str = "0" + String(number);
-	} else {
+  if (number >= 0 && number < 10) {
+    str = "0" + String(number);
+  } else {
     str = String(number);
-	}
-	return str;
+  }
+  return str;
 }
 
 void waterButtonClicked(){
@@ -660,7 +678,7 @@ void waterButtonClicked(){
   waterNow = true;
 }
 
-void lcdButtonClicked(){
+/*void lcdButtonClicked(){
   if(digitalRead(lcdButtonPin)== LOW){
     lcdButtonFlag = 1;
   }
@@ -668,7 +686,7 @@ void lcdButtonClicked(){
     lcdButtonFlag = 0;
   }
   displayNow = true;
-}
+}*/
 
 void ReadTimeNow(){
   checkTimeFlag=1;
