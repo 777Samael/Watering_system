@@ -1,21 +1,10 @@
-/* TO DO NOW
-*   
-*  TO DO LATER
-*   water level indicator / water pump power cutoff -> low water level signal !!!
-*   save logs to SD card
-*   connect via WiFi
-*   V_limits_ok == false && waterButtonFlag && waterNow -> use buzzer
-*   other uses of buzzer
-*   
-*  DONE
-*   sprawdzić wydajność pompki, czy na pewno 45.5 ml / sek
-*   Wydajność 47 sek > 2L - 42,5 ml sek
-*   dodać Serial.print do testów
-*   read time error on different pin?
-*   add variable for last watering datetime
-*   turn on LCD and display all data when button is clicked
-*   dodać lcd.print do testów / na stałe - turn off lcd on start adn turn on when button clicked
-*   describe all variables
+/*
+ *  TO DO LATER
+ *   water level indicator / water pump power cutoff -> low water level signal !!!
+ *   save logs to SD card
+ *   connect via WiFi
+ *   V_limits_ok == false && waterButtonFlag && waterNow -> use buzzer
+ *   other uses of buzzer
 */
 
 #include <Wire.h>
@@ -441,8 +430,6 @@ void loop() {
         digitalWrite(timeErrorLED,HIGH);
         //Serial.println("The DS3231 is stopped.  Please run the SetTime or check the circuitry.");
       }
-
-      delay(9000);
     }
   }
 
