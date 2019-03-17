@@ -90,11 +90,11 @@ float A1_input_volt = 0.0;  // calculated input voltage on cell 2
 float A2_input_volt = 0.0;  // calculated input voltage on cell 3
 float V_total       = 0.0;  // sum of valtages on all cells
 float V_total_min   = 9.0;  // minimal safe voltage value
-float V_total_max   = 12.8; // maximal safe coltage value
+float V_total_max   = 13.0; // maximal safe coltage value
 
-float A0_correction = 105.9;  // voltage read correction on cell 1
-float A1_correction = 105.8;  // voltage read correction on cell 2
-float A2_correction = 106.7;  // voltage read correction on cell 3
+float A0_correction = 107.5;  // voltage read correction on cell 1
+float A1_correction = 107.3;  // voltage read correction on cell 2
+float A2_correction = 107.5;  // voltage read correction on cell 3
 
 int A0_value = 0; // raw analog input value from cell 1
 int A1_value = 0; // raw analog input value from cell 2
@@ -610,6 +610,7 @@ void loop() {
   lcd.noBacklight();
   lcd.noDisplay();
   }
+  delay(500);
 }
 
 void ledBlink(int pinLED, int blinkCount, int intervalTime) {
