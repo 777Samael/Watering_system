@@ -61,7 +61,7 @@ plannedEvent schedule[]={
   plannedEvent("6 08 00 00 32"),
   plannedEvent("6 20 00 00 32"),
   plannedEvent("7 08 00 00 32"),
-  plannedEvent("7 20 00 00 32")
+  plannedEvent("7 17 41 00 32")
   };
 
 int eventCount = 14;
@@ -73,8 +73,8 @@ int voltageDiffLED  = 4;    // LED pin for voltage differences alarm - YELLOW
 int lowVoltageLED   = 5;    // LED pin for low voltage alarm - RED
 int highVoltageLED  = 6;    // LED pin for high voltage alarm - RED
 int timeErrorLED    = 7;    // LED pin for read time error - RED
-int wateringLED     = 8;    // watering is ON, - GREEN
-int chargingLED     = 9;    // LED pin for charging indicator - BLUE
+int wateringLED     = 8;    // watering is ON, - BLUE
+int chargingLED     = 9;    // LED pin for charging indicator - GREEN
 int waterPumpPin    = 10;   // Water pump relay pin
 int solarPanelPin   = 11;   // Solar charger relay pin
 
@@ -84,8 +84,6 @@ volatile bool waterNow        = false;  // water pump activation indicator
 volatile int checkTimeFlag    = 0;      // flag for time interval interruptions
 
 // Variables for displaying data using the button
-//volatile int lcdButtonFlag   = 0;      // display button clicked indicator
-//volatile bool displayNow     = false;  // display activation indicator
 int lcdButtonFlag = 1;
 String dateWaterScheduleLCD;
 String timeWaterScheduleLCD;
@@ -134,7 +132,6 @@ void setup() {
   
   // Read display on/off button
   pinMode(lcdButtonPin, INPUT_PULLUP);
-  //attachInterrupt(digitalPinToInterrupt(lcdButtonFlag),lcdButtonClicked, CHANGE);
 
   // LEDs
   pinMode(voltageDiffLED,OUTPUT); // LED pin for voltage differences alarm
@@ -180,7 +177,7 @@ void loop() {
   float A1A2_dif  = 0.0; // voltage difference between cell 2 and 3
   float A2A0_dif  = 0.0; // voltage difference between cell 3 and 1
 
-  Serial.println("--------------------------------------------");
+  /*Serial.println("--------------------------------------------");
   Serial.print("yearNow = ");
   Serial.println(yearNow);
   Serial.print("monthNow = ");
@@ -200,7 +197,7 @@ void loop() {
   Serial.print("A1A2_dif = ");
   Serial.println(A1A2_dif);
   Serial.print("A2A0_dif = ");
-  Serial.println(A2A0_dif);
+  Serial.println(A2A0_dif);*/
   //delay(5000);
 
 // Checking the voltage on the cells
@@ -239,12 +236,12 @@ void loop() {
   A1_input_volt = (2 * A1_input_volt) - A0_input_volt;
   A2_input_volt = (3 * A2_input_volt) - (2 * A1_input_volt);
 
-  Serial.print("A0_input_volt = ");
+  /*Serial.print("A0_input_volt = ");
   Serial.println(A0_input_volt);
   Serial.print("A1_input_volt = ");
   Serial.println(A1_input_volt);
   Serial.print("A2_input_volt = ");
-  Serial.println(A2_input_volt);
+  Serial.println(A2_input_volt);*/
   //delay(5000);
 
 // Alarm handling at incorrect voltage values
@@ -254,19 +251,19 @@ void loop() {
   A1A2_dif = abs(A1_input_volt - A2_input_volt);
   A2A0_dif = abs(A2_input_volt - A0_input_volt);
 
-  Serial.print("A0A1_dif = ");
+  /*Serial.print("A0A1_dif = ");
   Serial.println(A0A1_dif);
   Serial.print("A1A2_dif = ");
   Serial.println(A1A2_dif);
   Serial.print("A2A0_dif = ");
-  Serial.println(A2A0_dif);
+  Serial.println(A2A0_dif);*/
   //delay(5000);
 
   // Całkowita wartość napięcia
   V_total = A0_input_volt + A1_input_volt + A2_input_volt;
 
-  Serial.print("V_total = ");
-  Serial.println(V_total);
+  //Serial.print("V_total = ");
+  //Serial.println(V_total);
   //delay(5000);
 
   if (A0A1_dif > 0.1 || A1A2_dif > 0.1 || A2A0_dif > 0.1) {
@@ -276,13 +273,13 @@ void loop() {
     digitalWrite(voltageDiffLED, HIGH);
 
     // Display error message
-    Serial.println("Invalid V diff");
+    /*Serial.println("Invalid V diff");
     Serial.print("A0= ");
     Serial.println(A0_input_volt);
     Serial.print("A1= ");
     Serial.println(A1_input_volt);
     Serial.print("A2= ");
-    Serial.println(A2_input_volt);
+    Serial.println(A2_input_volt);*/
     //delay(2000);
 
   } else {
@@ -292,13 +289,13 @@ void loop() {
     digitalWrite(voltageDiffLED, LOW);
     
     // Display info message
-    Serial.println("Voltage OK");
+    /*Serial.println("Voltage OK");
     Serial.print("A0= ");
     Serial.println(A0_input_volt);
     Serial.print("A1= ");
     Serial.println(A1_input_volt);
     Serial.print("A2= ");
-    Serial.println(A2_input_volt);
+    Serial.println(A2_input_volt);*/
     //delay(2000);
   }
 
@@ -311,11 +308,11 @@ void loop() {
     digitalWrite(lowVoltageLED, HIGH);
     
     // Display error message
-    Serial.println("Too low voltage");
+    /*Serial.println("Too low voltage");
     Serial.print("V_min = ");
     Serial.println(V_total_min);
     Serial.print("V_total = ");
-    Serial.println(V_total);
+    Serial.println(V_total);*/
     //delay(2000);
   }
 
@@ -325,11 +322,11 @@ void loop() {
     digitalWrite(highVoltageLED, HIGH);
     
     // Display error message
-    Serial.println("Too high voltage");
+    /*Serial.println("Too high voltage");
     Serial.print("V_max = ");
     Serial.println(V_total_max);
     Serial.print("V_total = ");
-    Serial.println(V_total);
+    Serial.println(V_total);*/
     //delay(2000);
   }
 
@@ -340,9 +337,9 @@ void loop() {
     digitalWrite(highVoltageLED, LOW);
     
     // Display info message
-    Serial.println("Voltage in range.");
+    /*Serial.println("Voltage in range.");
     Serial.print("V_total = ");
-    Serial.println(V_total);
+    Serial.println(V_total);*/
     //delay(2000);
   }
 
@@ -354,14 +351,14 @@ void loop() {
   if (V_total < Charge_limit_low && V_total > V_total_min && Charge_run == false) {
     
     Charge_run = true;
-    Serial.println("Solar charing is needed.");
+    //Serial.println("Solar charing is needed.");
   }
 
   // Charging stop condition
   if (V_total > Charge_limit_high && Charge_run == true) {
     
     Charge_run = false;
-    Serial.println("Solar charing is not needed or stopped.");
+    //Serial.println("Solar charing is not needed or stopped.");
   }
 
   // Start charging
@@ -369,7 +366,7 @@ void loop() {
     
     digitalWrite(chargingLED, HIGH);
     digitalWrite(solarPanelPin, LOW);
-    Serial.println("Solar charging started.");
+    //Serial.println("Solar charging started.");
   }
 
   // Stop charging - discharging
@@ -377,7 +374,7 @@ void loop() {
     
     digitalWrite(chargingLED, LOW);
     digitalWrite(solarPanelPin, HIGH);
-    Serial.println("Solar charging stoped or is not needed.");
+    //Serial.println("Solar charging stoped or is not needed.");
   }
 
   // Starting the water pump
@@ -388,14 +385,14 @@ void loop() {
     digitalWrite(wateringLED,HIGH);
     dateWaterCustomLCD = "Date: 20" + String(yearNow) + "/" + get2digits(monthNow) + "/" + get2digits(dayNow);
     timeWaterCustomLCD = "Time: " + get2digits(hourNow) + ":" + get2digits(minuteNow) + ":" + get2digits(secondNow);
-    Serial.println("The button is pressed, the water pump is working.");
+    //Serial.println("The button is pressed, the water pump is working.");
   }
 
   if (waterButtonFlag == 0 && waterNow){
     
     digitalWrite(waterPumpPin,HIGH);
     digitalWrite(wateringLED,LOW);
-    Serial.println("The button has been released, the water pump stopped working.");
+    //Serial.println("The button has been released, the water pump stopped working.");
   }
 
   if (waterButtonFlag == 0 && checkTimeFlag){
@@ -403,16 +400,16 @@ void loop() {
     if (yearNow < 50) {   // Check if read datetime is not 1/1/1960
 
       digitalWrite(timeErrorLED,LOW);
-      Serial.println("Read from RTC is OK");
+      //Serial.println("Read from RTC is OK");
 
       for (int i = 0; i < eventCount; i++) {
 
         plannedEvent event = schedule[i];
-        Serial.println("Looping through event schedule.");
+        //Serial.println("Looping through event schedule.");
 
         if (wDayNow == event.WeekDay){
 
-          Serial.println("Weekday matches the schedule element.");
+          //Serial.println("Weekday matches the schedule element.");
           
       // Watering
           if (hourNow == event.Hour && minuteNow == event.Min /*&& secondNow == event.Sec*/){
@@ -429,7 +426,7 @@ void loop() {
             dateWaterScheduleLCD = "Date: 20" + String(yearNow) + "/" + get2digits(monthNow) + "/" + get2digits(dayNow);
             timeWaterScheduleLCD = "Time: " + get2digits(hourNow) + ":" + get2digits(minuteNow) + ":" + get2digits(secondNow);
   
-            Serial.println("Watering finished.");
+            //Serial.println("Watering finished.");
 
             delay(60000);   // Delay not to fall into the same loop for the second time.
           }
@@ -442,7 +439,7 @@ void loop() {
       if (yearNow > 50) {  // In case of disconnection of RTC or RTC has a malfunction
 
         digitalWrite(timeErrorLED,HIGH);
-        Serial.println("The DS3231 is stopped.  Please run the SetTime or check the circuitry.");
+        //Serial.println("The DS3231 is stopped.  Please run the SetTime or check the circuitry.");
       }
 
       delay(9000);
@@ -451,49 +448,29 @@ void loop() {
 
 // Turn on lcd and display all data
 
-  Serial.print("waterButtonFlag = ");
-  Serial.println(waterButtonFlag);
-  Serial.print("waterNow = ");
-  Serial.println(waterNow);
-  
-  Serial.print("lcdButtonFlag = ");
-  Serial.println(lcdButtonFlag);
-  //Serial.print("displayNow = ");
-  //Serial.println(displayNow);
-  delay(5000);
-  //if (waterButtonFlag == 0 && waterNow){
-  //if (lcdButtonPin == LOW) {
   if (lcdButtonFlag == LOW) {
 
   lcd.backlight();
   lcd.display();
-  Serial.println("Displaying on LCD...................");
-  
+
   // Display basic data
   lcd.clear();
   lcd.setCursor(0,0);
-  lcd.print("Watering system");
-  lcd.setCursor(0,1);
   lcd.print("Hello :)");
+  lcd.setCursor(0,1);
+  lcd.print("Watering system");
   delay(3000);
 
   lcd.clear();
   lcd.setCursor(0,0);
   lcd.print("Current DateTime");
   delay(2000);
-  
+
   lcd.clear();
   lcd.setCursor(0,0);
   lcd.print(dateNowLCD);
   lcd.setCursor(0,1);
   lcd.print(timeNowLCD);
-  delay(3000);
-
-  lcd.clear();
-  lcd.setCursor(0,0);
-  lcd.print("Watering system");
-  lcd.setCursor(0,1);
-  lcd.print("Hello :)");
   delay(3000);
 
   // Voltage values
@@ -503,17 +480,17 @@ void loop() {
 
   lcd.setCursor(0,1);
   lcd.print("A0 = ");
-  lcd.println(A0_input_volt);
+  lcd.print(A0_input_volt);
   delay(2000);
 
   lcd.setCursor(0,1);
   lcd.print("A1 = ");
-  lcd.println(A1_input_volt);
+  lcd.print(A1_input_volt);
   delay(2000);
 
   lcd.setCursor(0,1);
   lcd.print("A2 = ");
-  lcd.println(A2_input_volt);
+  lcd.print(A2_input_volt);
   delay(3000);
   
   // Voltage errors
@@ -539,17 +516,17 @@ void loop() {
   
       lcd.setCursor(0,1);
       lcd.print("A0A1_dif = ");
-      lcd.println(A0A1_dif);
+      lcd.print(A0A1_dif);
       delay(2000);
     
       lcd.setCursor(0,1);
       lcd.print("A1A2_dif = ");
-      lcd.println(A1A2_dif);
+      lcd.print(A1A2_dif);
       delay(2000);
     
       lcd.setCursor(0,1);
       lcd.print("A2A0_dif = ");
-      lcd.println(A2A0_dif);
+      lcd.print(A2A0_dif);
       delay(3000);
     }
 
@@ -600,6 +577,7 @@ void loop() {
     lcd.print("In progress");
     delay(3000);
   } else {
+    lcd.clear();
     lcd.setCursor(0,0);
     lcd.print("Battery charging");
     lcd.setCursor(0,1);
@@ -645,7 +623,6 @@ void loop() {
   lcd.noBacklight();
   lcd.noDisplay();
   }
-  delay(5000);
 }
 
 void ledBlink(int pinLED, int blinkCount, int intervalTime) {
@@ -677,16 +654,6 @@ void waterButtonClicked(){
   }
   waterNow = true;
 }
-
-/*void lcdButtonClicked(){
-  if(digitalRead(lcdButtonPin)== LOW){
-    lcdButtonFlag = 1;
-  }
-  else{
-    lcdButtonFlag = 0;
-  }
-  displayNow = true;
-}*/
 
 void ReadTimeNow(){
   checkTimeFlag=1;
