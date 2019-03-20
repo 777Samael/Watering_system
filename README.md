@@ -27,7 +27,6 @@ Informations displayed:
 - Current date and time
 - Voltages at individual cells
 - Cell voltage errors
-- Time reading error
 - Cell charging status
 - Date and time of the last manual watering
 - Date and time of last watering from the schedule
@@ -66,6 +65,8 @@ Stworzyłem to urządzenie żeby ułatwić sobie podlewanie mojego ogródka warz
 Głównym zadaniem urządzenia jest podlewanie roślin zgodnie z ustalonym harmonogramem.
 Dodatkowo urządzenie wyposażone jest w wyświtlacz LCD, na którym wyświetlane są potrzebne informacje, akumulatory 18650 i kilka innych mnijeszych elementów.
 
+Ogniwa 18650 ładowane są za pomocą panelu fotowoltaicznego. Żeby utrzymać dobrą kondycję ogniw są one ładowane dopiero jak osiągną odpowiedni stopień rozładowania.
+
 Opis działania.
 Kod zawiera tablicę z harmonogramem podlewania z wyszczególnieniem każdego dnia tygodnia, konkretnej godziny i długości podlewania. Po sprawdzeniu poprawności odczytu aktualnej daty i godziny oraz stanu napięć na ogniwach uruchamiana jest pompka wody.
 
@@ -84,7 +85,6 @@ Wyświetlone informacje:
 - Aktualna data i godzina
 - Napięcia na poszczególnych ogniwach
 - Błędy napięcia na ogniwach
-- Błedy odczytu czasu ----------------------- !!!!!!!!
 - Status ładowania ogniw
 - Data i godzina ostatniego manualnego podlewania
 - Data i godzina ostatniego podlewania z harmonogramu
@@ -109,3 +109,36 @@ Lista cześi:
 - kable do gold pinów
 - płyta mdf 4mm
 - płyta akrylowa przeźroczysta
+
+Dzielnik napięcia
+Dzielnik jest elementem wykonanym samodzielnie na płytce prototypowej z użyciem rezystorów i złącz skręcanych. soldering prototype board
+
+Kod do schematu dzielnika napięcia http://www.falstad.com/circuit/
+
+$ 1 0.000005 4.43302224444953 58 5 43
+r 64 96 240 96 0 2000
+r 240 96 240 176 0 1000
+v 64 240 64 160 0 0 40 4.2 0 0 0.5
+v 64 160 64 96 0 0 40 4.2 0 0 0.5
+v 64 304 64 240 0 0 40 4.2 0 0 0.5
+r 64 160 192 160 0 1000
+r 64 240 144 240 0 1000
+w 64 304 144 304 0
+r 192 160 192 224 0 1000
+w 144 304 192 304 0
+w 192 304 240 304 0
+w 240 96 368 96 0
+w 192 160 320 160 0
+w 144 240 288 240 0
+w 192 224 192 304 0
+w 240 176 240 304 0
+w 240 304 288 304 0
+p 368 96 368 160 1 0
+p 320 160 320 224 1 0
+p 288 240 288 304 1 0
+w 288 304 320 304 0
+w 320 224 320 304 0
+w 320 304 368 304 0
+w 368 160 368 304 0
+o 0 64 0 4099 20 0.00625 0 2 0 3
+38 0 0 1 101 Resistance
