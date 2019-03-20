@@ -1,62 +1,3 @@
-PL
-
-# Watering system - Arduino
-
-System nawadniania roślin wykorzystujący Arduino Nano, zegar czasu rzeczywistego (RTC DS3231) i pompę wody 12V.
-
-System nawadniania roślin.
-Stworzyłem to urządzenie żeby ułatwić sobie podlewanie mojego ogródka warzywnego na balkonie.
-Głównym zadaniem urządzenia jest podlewanie roślin zgodnie z ustalonym harmonogramem.
-Dodatkowo urządzenie wyposażone jest w wyświtlacz LCD, na którym wyświetlane są potrzebne informacje, akumulatory 18650 i kilka innych mnijeszych elementów.
-
-Opis działania.
-Kod zawiera tablicę z harmonogramem podlewania z wyszczególnieniem każdego dnia tygodnia, konkretnej godziny i długości podlewania. Po sprawdzeniu poprawności odczytu aktualnej daty i godziny oraz stanu napięć na ogniwach uruchamiana jest pompka wody.
-
-Sprawdzenie ogniw 18650 polega na:
-- teście napięcia na poszczególnych ogniwach
-- obliczeniu różnicy napięć między poszczególnymi ogniwami
-- obliczeniu sumy napięcia na wszystkich ogniwach
-
-Jeżeli różnica napięć na ogniwach jest większa niż przewidziana w kodzie to zostaje zapalona dioda żółta, pozostała część procesu przechodzi bez zmian.
-Jeżeli suma napięć na ogniwach jest zbyt mała lub zbyt duża zapala się odpowiednia czerwona dioda, a podlewanie z harmonogramu i manualne zostaje wstrzymane.
-
-Jeżeli zostanie naciśnięty przycisk podlewania zostają sprawdzone warunki poprawności napięć i zostaje uruchomione podlewanie.
-
-Jeżeli zostanie naciśnięty przycisk odpowiadający za wyświetlanie informacji na LCD wszystkie dane zostają wyświetlone.
-Wyświetlone informacje:
-- Aktualna data i godzina
-- Napięcia na poszczególnych ogniwach
-- Błędy napięcia na ogniwach
-- Błedy odczytu czasu ----------------------- !!!!!!!!
-- Status ładowania ogniw
-- Data i godzina ostatniego manualnego podlewania
-- Data i godzina ostatniego podlewania z harmonogramu
-
-Lista cześi:
-- Arduino Nano (kopia) with ATMEL ATMEGA328P-AU microcontroller and CH340G USB converter
-- Shield I/O for Arduino NANO 3.0
-- Real-time clock RTC DS3231
-- wyświtlacz LCD 1602 HD44780 with IIC/I2C serial interface adapter module
-- 2x przekaźnik 5V
-- transformator step down
-- 3x ogniwo 18650
-- Battery management system BMS 3S
-- Pompka wody 12V 4.2W 240 L/h | Wydajność 47 sek > 2L | 42,5 ml/s | 153 L/h
-- samodzielnie zbudowany dzielnik napięcia
-- obudowa Z15 (89 x 149 x 253) - Polystyrene Enclosure Box Z-15
-- kolorowe diody LED 5mm (1x żółta, 3x czerwona, 1x niebieska, 1x zielona)
-- wyłącznik pływakowy - float switch
-- przełącznik I/O
-- rezystory (4x 1 kOhm, 1x 2kOhm)
-- śruby M3 12mm i 16mm
-- kable do gold pinów
-- płyta mdf 4mm
-- płyta akrylowa przeźroczysta
-
-Dodać v_limits_ok do podlewania pod harmonogram
-Dodać time read error do LCD
-
-
 ENG
 
 # Watering system - Arduino
@@ -111,3 +52,60 @@ List of worship:
 - gold pins cables
 - 4mm mdf board
 - transparent acrylic glass
+
+-----------------------------------------------------------------------------------------------------------------------------
+
+PL
+
+# Watering system - Arduino
+
+System nawadniania roślin wykorzystujący Arduino Nano, zegar czasu rzeczywistego (RTC DS3231) i pompę wody 12V.
+
+System nawadniania roślin.
+Stworzyłem to urządzenie żeby ułatwić sobie podlewanie mojego ogródka warzywnego na balkonie.
+Głównym zadaniem urządzenia jest podlewanie roślin zgodnie z ustalonym harmonogramem.
+Dodatkowo urządzenie wyposażone jest w wyświtlacz LCD, na którym wyświetlane są potrzebne informacje, akumulatory 18650 i kilka innych mnijeszych elementów.
+
+Opis działania.
+Kod zawiera tablicę z harmonogramem podlewania z wyszczególnieniem każdego dnia tygodnia, konkretnej godziny i długości podlewania. Po sprawdzeniu poprawności odczytu aktualnej daty i godziny oraz stanu napięć na ogniwach uruchamiana jest pompka wody.
+
+Sprawdzenie ogniw 18650 polega na:
+- teście napięcia na poszczególnych ogniwach
+- obliczeniu różnicy napięć między poszczególnymi ogniwami
+- obliczeniu sumy napięcia na wszystkich ogniwach
+
+Jeżeli różnica napięć na ogniwach jest większa niż przewidziana w kodzie to zostaje zapalona dioda żółta, pozostała część procesu przechodzi bez zmian.
+Jeżeli suma napięć na ogniwach jest zbyt mała lub zbyt duża zapala się odpowiednia czerwona dioda, a podlewanie z harmonogramu i manualne zostaje wstrzymane.
+
+Jeżeli zostanie naciśnięty przycisk podlewania zostają sprawdzone warunki poprawności napięć i zostaje uruchomione podlewanie.
+
+Jeżeli zostanie naciśnięty przycisk odpowiadający za wyświetlanie informacji na LCD wszystkie dane zostają wyświetlone.
+Wyświetlone informacje:
+- Aktualna data i godzina
+- Napięcia na poszczególnych ogniwach
+- Błędy napięcia na ogniwach
+- Błedy odczytu czasu ----------------------- !!!!!!!!
+- Status ładowania ogniw
+- Data i godzina ostatniego manualnego podlewania
+- Data i godzina ostatniego podlewania z harmonogramu
+
+Lista cześi:
+- Arduino Nano (kopia) with ATMEL ATMEGA328P-AU microcontroller and CH340G USB converter
+- Shield I/O for Arduino NANO 3.0
+- Real-time clock RTC DS3231
+- wyświtlacz LCD 1602 HD44780 with IIC/I2C serial interface adapter module
+- 2x przekaźnik 5V
+- transformator step down
+- 3x ogniwo 18650
+- Battery management system BMS 3S
+- Pompka wody 12V 4.2W 240 L/h | Wydajność 47 sek > 2L | 42,5 ml/s | 153 L/h
+- samodzielnie zbudowany dzielnik napięcia
+- obudowa Z15 (89 x 149 x 253) - Polystyrene Enclosure Box Z-15
+- kolorowe diody LED 5mm (1x żółta, 3x czerwona, 1x niebieska, 1x zielona)
+- wyłącznik pływakowy - float switch
+- przełącznik I/O
+- rezystory (4x 1 kOhm, 1x 2kOhm)
+- śruby M3 12mm i 16mm
+- kable do gold pinów
+- płyta mdf 4mm
+- płyta akrylowa przeźroczysta
