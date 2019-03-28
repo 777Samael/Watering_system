@@ -9,6 +9,9 @@ I created this device to make it easier for me to water my garden on the balcony
 The main task of the device is watering plants according to the set schedule.
 In addition, the device is equipped with LCD display, which displays the necessary information, 18650 batteries and a few other smaller elements.
 
+The 18650 cells are charged using a photovoltaic panel. The housing has a standard 5.5 / 2.1mm connectors, so you can connect it to an ordinary power supply with a min. 12,6V.
+In order to maintain the good condition of the cells, they are charged only when they reach the appropriate level of discharge.
+
 A description of the operation.
 The code contains an array with watering schedule detailing each day of the week, the specific hour and length of watering. After verifying the correctness of reading the current date and time and the state of voltages on the cells, the water pump is started.
 
@@ -36,11 +39,12 @@ List of worship:
 - Shield I/O for Arduino NANO 3.0
 - Real-time clock RTC DS3231
 - 1602 HD44780 with IIC/I2C LCD serial interface adapter module
-- 2x 5V relay
+- 2x 5V relay module
 - step down transformer
 - 3x 18650 cell
-- Water pump 12V 4.2W 240 L/h | Perfomance 47 sec > 2L | 42.5 ml/s 153 L/h
 - Battery management system BMS 3S
+- 18650 4pcs holder
+- Water pump 12V 4.2W (240 L/h described by seller) | Real perfomance (measured) 47 sec > 2L | 42.5 ml/s 153 L/h
 - self-built voltage divider
 - Polystyrene Enclosure Box Z-15 (89 x 149 x 253)
 - 5mm LEDs (1x yellow, 3x red, 1x blue, 1x green)
@@ -52,6 +56,13 @@ List of worship:
 - 4mm mdf board
 - transparent acrylic glass
 
+I ordered most of the elements in China, other parts are from local sellers.
+
+Voltage divider
+The divider is an element made independently on the soldering prototype board with the use of resistors and screwed connectors.
+
+The code for the voltage divider diagram at http://www.falstad.com/circuit/ is at the end of the readme.
+
 -----------------------------------------------------------------------------------------------------------------------------
 
 PL
@@ -61,11 +72,13 @@ PL
 System nawadniania roślin wykorzystujący Arduino Nano, zegar czasu rzeczywistego (RTC DS3231) i pompę wody 12V.
 
 System nawadniania roślin.
+Jest to mój pierwszy "większy" projekt, dlatego wykonanie i kod są dość proste.
 Stworzyłem to urządzenie żeby ułatwić sobie podlewanie mojego ogródka warzywnego na balkonie.
 Głównym zadaniem urządzenia jest podlewanie roślin zgodnie z ustalonym harmonogramem.
 Dodatkowo urządzenie wyposażone jest w wyświtlacz LCD, na którym wyświetlane są potrzebne informacje, akumulatory 18650 i kilka innych mnijeszych elementów.
 
-Ogniwa 18650 ładowane są za pomocą panelu fotowoltaicznego. Żeby utrzymać dobrą kondycję ogniw są one ładowane dopiero jak osiągną odpowiedni stopień rozładowania.
+Ogniwa 18650 ładowane są za pomocą panelu fotowoltaicznego. W obudowie zamontowałem standardowe złącze 5,5/2,1mm więc równie dobrze można podłączyć zwykły zasilacz dający min 12,6V.
+Żeby utrzymać dobrą kondycję ogniw są one ładowane dopiero jak osiągną odpowiedni poziom rozładowania.
 
 Opis działania.
 Kod zawiera tablicę z harmonogramem podlewania z wyszczególnieniem każdego dnia tygodnia, konkretnej godziny i długości podlewania. Po sprawdzeniu poprawności odczytu aktualnej daty i godziny oraz stanu napięć na ogniwach uruchamiana jest pompka wody.
@@ -94,26 +107,58 @@ Lista cześi:
 - Shield I/O for Arduino NANO 3.0
 - Real-time clock RTC DS3231
 - wyświtlacz LCD 1602 HD44780 with IIC/I2C serial interface adapter module
-- 2x przekaźnik 5V
+- 2x moduł przekaźnika 5V
 - transformator step down
 - 3x ogniwo 18650
 - Battery management system BMS 3S
-- Pompka wody 12V 4.2W 240 L/h | Wydajność 47 sek > 2L | 42,5 ml/s | 153 L/h
+- koszyczek na 4 ogniwa 18650
+- Pompka wody 12V 4.2W (240 L/h opisane przez sprzedawcę) | Rzeczywista wydajność 47 sek > 2L | 42,5 ml/s | 153 L/h
 - samodzielnie zbudowany dzielnik napięcia
 - obudowa Z15 (89 x 149 x 253) - Polystyrene Enclosure Box Z-15
 - kolorowe diody LED 5mm (1x żółta, 3x czerwona, 1x niebieska, 1x zielona)
-- wyłącznik pływakowy - float switch
-- przełącznik I/O
+- wyłącznik pływakowy
+- 2x przełącznik I/O
 - rezystory (4x 1 kOhm, 1x 2kOhm)
 - śruby M3 12mm i 16mm
 - kable do gold pinów
 - płyta mdf 4mm
 - płyta akrylowa przeźroczysta
 
+Większość elementów zamawiałem w chinach, pozostałe u lokalnych sprzedawców.
+
 Dzielnik napięcia
 Dzielnik jest elementem wykonanym samodzielnie na płytce prototypowej z użyciem rezystorów i złącz skręcanych. soldering prototype board
 
-Kod do schematu dzielnika napięcia http://www.falstad.com/circuit/
+Na końcu readme znajduje się kod do schematu dzielnika napięcia do wykorzystania na stronie http://www.falstad.com/circuit/
+
+
+Wykonanie takiego układu nie jest bardzo skomplikowane dlatego poniżej znajdziecie opis rzeczy które mogą sprawić problemy i kilka rad dla początkujących.
+
+Przede wszystkim każdy z elementów najlepiej jest podłączać i konfigurować oddzielnie.
+Polecam zacząć od konfiguracji RTC i LCD. Dość popularnym modułem RTC jest model 1307, ale ze względu na podatność modułu na zmiany temperatury może on być problemowy kiedy potrzebujemy precyzji w odmierzaniu okresów podlewania. Z drugiej strony różnice na poziomie kilku minut miesięcznie nie powinny sprawić różnicy roślinom.
+
+Ogniwa 18650 umieściłem w koszyczku, BMS jest przyklejony na taśmę dwustronną z tyłu, a w miejscu na czwarte ogniwo zmieściłem dzielnik napięcia.
+Chciałem żeby przewody do odczytu napięcia na ogniwach były możliwe małe więc wykorzystałem żyły z przewodu ETH. W tym wypadku warto zwrócić uwagę żeby były to żyły plecione, ułatwia to późniejsze manipulowanie kablami.
+
+
+
+
+
+
+Obudowa jest dość duża jak na takie urządzenie, ale przez gold piny i dość sztywne przewody do gold pinów potrzebne było sporo miejsca.
+
+
+
+
+
+
+
+
+
+
+
+
+Voltage divider code / Kod do dzielnika napięcia
 
 $ 1 0.000005 4.43302224444953 58 5 43
 r 64 96 240 96 0 2000
