@@ -384,7 +384,7 @@ void loop() {
     //Serial.println("The button has been released, the water pump stopped working.");
   }
 
-  if (waterButtonFlag == 0 && checkTimeFlag){
+  if (waterButtonFlag == 0 && checkTimeFlag && V_limits_ok){
     
     if (yearNow < 50) {   // Check if read datetime is not 1/1/1960
 
