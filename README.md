@@ -61,6 +61,20 @@ I ordered most of the elements in China, other parts are from local sellers.
 Voltage divider
 The divider is an element made independently on the soldering prototype board with the use of resistors and screwed connectors.
 
+### Tips
+
+Implementation of such a system is not very complicated, below you will find a description of things that can cause problems and some tips for beginners.
+
+First of all, each element is best to connect and configure separately.
+I recommend starting with the RTC and LCD configuration. The RTC 1307 model is quite popular, but due to the module susceptibility to temperature changes it can be problematic when we need precision in measuring watering periods. On the other hand, differences at the level of a few minutes per month should not make a difference to plants.
+
+I put 18650 cells in the holder, BMS is sticked to the back with double-sided tape, and in the place for the fourth cell I have placed the voltage divider.
+I wanted the wires for the voltage reading on the cells to be as thin as possible so I used the wires from the ETH cable. In this case, it is worth paying attention to that they are braided wires, it facilitates later manipulation of cables.
+
+I attached all elements to the mdf board with 3.5mm screws.
+
+The housing is quite large for such a device, but a lot of space was needed for gold pins and quite stiff wires for gold pins.
+
 #### The code for the voltage divider diagram at [Flastad.com](http://www.falstad.com/circuit/) is at the end of the readme.
 
 -----------------------------------------------------------------------------------------------------------------------------
@@ -130,10 +144,11 @@ Dzielnik napięcia
 Dzielnik jest elementem wykonanym samodzielnie na płytce prototypowej z użyciem rezystorów i złącz skręcanych. soldering prototype board
 
 #### Na końcu readme znajduje się kod do schematu dzielnika napięcia do wykorzystania na stronie [Flastad.com](http://www.falstad.com/circuit/)
+------------------------------------------------
 
 ### Wskazówki
 
-Wykonanie takiego układu nie jest bardzo skomplikowane dlatego poniżej znajdziecie opis rzeczy które mogą sprawić problemy i kilka rad dla początkujących.
+Wykonanie takiego układu nie jest bardzo skomplikowane, poniżej znajdziecie opis rzeczy które mogą sprawić problemy i kilka rad dla początkujących.
 
 Przede wszystkim każdy z elementów najlepiej jest podłączać i konfigurować oddzielnie.
 Polecam zacząć od konfiguracji RTC i LCD. Dość popularnym modułem RTC jest model 1307, ale ze względu na podatność modułu na zmiany temperatury może on być problemowy kiedy potrzebujemy precyzji w odmierzaniu okresów podlewania. Z drugiej strony różnice na poziomie kilku minut miesięcznie nie powinny sprawić różnicy roślinom.
