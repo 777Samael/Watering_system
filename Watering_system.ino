@@ -37,23 +37,16 @@ plannedEvent::plannedEvent(const char* value)
 //Length -> 10 is the seconds
 // 1 is Sunday
 plannedEvent schedule[]={
-  plannedEvent("1 08 00 00 32"),
-  plannedEvent("1 23 36 00 32"),
-  plannedEvent("2 08 00 00 32"),
-  plannedEvent("2 20 00 00 32"),
-  plannedEvent("3 08 00 00 32"),
-  plannedEvent("3 20 00 00 32"),
-  plannedEvent("4 08 00 00 32"),
-  plannedEvent("4 20 00 00 32"),
-  plannedEvent("5 08 00 00 32"),
-  plannedEvent("5 20 00 00 32"),
-  plannedEvent("6 08 00 00 32"),
-  plannedEvent("6 20 00 00 32"),
-  plannedEvent("7 08 00 00 32"),
-  plannedEvent("7 17 41 00 32")
+  plannedEvent("1 22 00 00 99"),
+  plannedEvent("2 22 00 00 99"),
+  plannedEvent("3 22 00 00 99"),
+  plannedEvent("4 22 00 00 99"),
+  plannedEvent("5 22 00 00 99"),
+  plannedEvent("6 22 00 00 99"),
+  plannedEvent("7 22 00 00 99")
   };
 
-int eventCount = 14;
+int eventCount = 7;
 
 // I/O pins
 int waterButtonPin  = 2;    // On/Off pin for custom watering
@@ -93,13 +86,14 @@ float V_total_min   = 9.0;  // minimal safe voltage value
 float V_total_max   = 13.0; // maximal safe coltage value
 
 float A0_correction = 107.5;  // voltage read correction on cell 1
-float A1_correction = 107.3;  // voltage read correction on cell 2
+float A1_correction = 106.8;  // voltage read correction on cell 2
 float A2_correction = 107.5;  // voltage read correction on cell 3
 
 int A0_value = 0; // raw analog input value from cell 1
 int A1_value = 0; // raw analog input value from cell 2
 int A2_value = 0; // raw analog input value from cell 3
 
+float V_diff_max    = 0.2;   // max acceptable voltage difference
 bool V_diff_ok    = true; // voltage difference between cells
 bool V_limits_ok  = true; // voltage limits for whole battery pack
 
@@ -255,7 +249,7 @@ void loop() {
   //Serial.println(V_total);
   //delay(5000);
 
-  if (A0A1_dif > 0.1 || A1A2_dif > 0.1 || A2A0_dif > 0.1) {
+  if (A0A1_dif > V_diff_max || A1A2_dif > V_diff_max || A2A0_dif > V_diff_max) {
 
     // Turn on alarm LED and change the value of the voltage check variable
     V_diff_ok = false;
@@ -263,6 +257,8 @@ void loop() {
 
     // Display error message
     /*Serial.println("Invalid V diff");
+    Serial.print("V_diff_max = ";
+    Serial.println(V_diff_max);
     Serial.print("A0= ");
     Serial.println(A0_input_volt);
     Serial.print("A1= ");
