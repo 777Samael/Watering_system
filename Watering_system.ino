@@ -215,7 +215,7 @@ void loop() {
      A2_input_volt  =0.0;
    }
 
-  // Dokładne wartości napięcia na poszczególnych ogniwach
+  // Calculation of exact voltage values of each cell
   A1_input_volt = (2 * A1_input_volt) - A0_input_volt;
   A2_input_volt = (3 * A2_input_volt) - (2 * A1_input_volt);
 
@@ -242,7 +242,7 @@ void loop() {
   Serial.println(A2A0_dif);*/
   //delay(5000);
 
-  // Całkowita wartość napięcia
+  // Total voltage value
   V_total = A0_input_volt + A1_input_volt + A2_input_volt;
 
   //Serial.print("V_total = ");
