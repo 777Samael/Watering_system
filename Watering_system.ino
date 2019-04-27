@@ -26,13 +26,13 @@ class plannedEvent{
   plannedEvent(const char* value);
   int Hour, Min, Sec;
   int WeekDay;
-  int Dlugosc;
+  int WateringTime;
 };
 
 // Watering schedule
 plannedEvent::plannedEvent(const char* value)
 {
-  sscanf(value, "%d %d %d %d %d", &WeekDay, &Hour, &Min, &Sec, &Dlugosc);
+  sscanf(value, "%d %d %d %d %d", &WeekDay, &Hour, &Min, &Sec, &WateringTime);
 }
 //Length -> 10 is the seconds
 // 1 is Sunday
@@ -403,7 +403,7 @@ void loop() {
   
             digitalWrite(waterPumpPin,LOW);
             digitalWrite(wateringLED,HIGH);
-            delay(event.Dlugosc * 100);
+            delay(event.WateringTime * 100);
   
             digitalWrite(waterPumpPin,HIGH);
             digitalWrite(wateringLED,LOW);
